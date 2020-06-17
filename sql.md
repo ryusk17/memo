@@ -25,3 +25,8 @@ character_set_results=utf8mb4
 
 - mysql が起動しなくなる (ERROR 2002 (HY000): Can’t connect to local MySQL server through socket ‘/var/lib/mysql/mysql.sock’ (2))
   - 文字コード設定を消す(https://teratail.com/questions/141433)
+
+## 外部キー制約を無視する
+- `SET foreign_key_checks = 0;`(外部キー制約を外す)
+- データ操作
+- `SET foreign_key_checks = 1;`(外部キー制約を設定)

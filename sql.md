@@ -22,3 +22,6 @@ character_set_results=utf8mb4
 | character_set_system     | utf8                           |
 | character_sets_dir       | /usr/share/mysql-8.0/charsets/ |
 +--------------------------+--------------------------------+
+
+- mysql が起動しなくなる (ERROR 2002 (HY000): Can’t connect to local MySQL server through socket ‘/var/lib/mysql/mysql.sock’ (2))
+  - 文字コード設定を消す(https://teratail.com/questions/141433)

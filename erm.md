@@ -7,3 +7,6 @@
     - ストレートエンジン (InnoDB)
     - 文字セット (utf8mb4)
     - 照合順序 (utf8mb4_general_ci)
+
+## テーブル設計
+- date, datetime型は not null 制約をつけない (created, modified は除く)

@@ -18,3 +18,20 @@ https://book.cakephp.org/3/ja/tutorials-and-examples/blog/blog.html
 
 ## PHP CS のエラー
 php.ini の ;extension=intl の ; を外す
+
+## ファイル構成
+- src/
+  - src/
+    - Controller/
+    - Model/
+      - Entity/
+      - Table/
+        - ~Table.php (バリデーション)
+    - Template/
+      - Element/
+        - header_menu.ctp (ヘッダー)
+      - {tableName}/
+        - add.ctp
+        - edit.ctp
+        - index.ctp
+        - view.ctp

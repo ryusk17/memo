@@ -1,7 +1,4 @@
 # プログラミングする上で
-
-C:\Users\narieda\Desktop\MyPHP\banana\README.md
-
 * 疎結合 > 密結合
 * MarkDown 記法
 

@@ -20,8 +20,8 @@
 - add -u  (間違えた場合は修正後もう一度 add することで上書きできる)(基本的には -u を用いる)
 (- add . ("." すべてのファイル・ディレクトリ))
 - (diff --staged)
-- commit (-m '') (コミットメッセージ vim / -m オプションにて記載)
-- push origin branchName (origin branchName を正確に指定)
+- commit (-m '') (コミットメッセージ vim / -m オプションにて記載)(コミットはためておくことができる(１コミット１プッシュではない))
+- push origin branchName (origin branchName を正確に指定)(未プッシュのコミットすべてがプッシュされる)
 
 - diff (差分確認)
 - log (ログ)

@@ -27,6 +27,7 @@ php.ini の ;extension=intl の ; を外す
 - src/
   - config/
     - .env
+    - .env.default
     - app.php
     - bootstrap.php
     - const.php (定数定義 (案件による))

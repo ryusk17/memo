@@ -37,6 +37,8 @@
 - log (取り込まれているか確認)
 - (push origin branchName (リモートブランチの更新))
 
+## stash
+
 ## tips
 - 作業を戻したい
   - status (変更の確認)

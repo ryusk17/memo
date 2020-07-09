@@ -30,7 +30,7 @@
 - status / branch (確認してから始める)
 - checkout 対象枝 (枝を変える)
 - (branch) (確認！)
-- pull (更新)
+- pull origin branchName (更新)
 - checkout 自分枝 ()
 - (branch)
 - rebase 対象枝 (取り込む)

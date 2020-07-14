@@ -12,6 +12,11 @@
 > 良い例）master > staging > develop > feature/~
 > 悪い例）develop < master > staging (一つの枝から理由なく何本も派生するのはあまり良くない)
 
+## branch 変更
+- リモートに存在する別の枝に移動したい
+- checkout 別枝
+- 存在しませんとなる場合
+  - pull origin どの枝でも可 (リモートをローカルに反映させる)(親の枝を pull するのが吉 ex. pull origin develop)
 
 ## push
 - branch (枝の確認)
@@ -28,12 +33,12 @@
 
 ## rebase
 - status / branch (確認してから始める)
-- checkout 対象枝 (枝を変える)
+- checkout 対象枝 (枝を変える) ex. checkout develop
 - (branch) (確認！)
-- pull origin branchName (更新)
-- checkout 自分枝 ()
+- pull origin branchName (更新) ex. pull origin develop
+- checkout 自分枝 () ex. checkout myBranch
 - (branch)
-- rebase 対象枝 (取り込む)
+- rebase 対象枝 (取り込む) ex. rebase develop
 - log (取り込まれているか確認)
 - (push origin branchName (リモートブランチの更新))
 
@@ -43,6 +48,8 @@
 - 作業を戻したい
   - status (変更の確認)
   - checkout ファイルパス (変更前に戻す)
+- コミット取り消し
+  - reset --soft HEAD^ (先頭コミットの取り消し)
 - add . と -u
   - . (すべてのファイル・ディレクトリ)
   - -u (インデックス上にある(バージョン管理されている)ファイルの変更だけ add する)
@@ -51,4 +58,5 @@
 - 空フォルダを git 上にあげるために必要
 - 空のままだとフォルダごと無視される
 
-
+## 注意事項
+- シンボリックリンクは commit しない (各環境に左右されるため)

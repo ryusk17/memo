@@ -19,7 +19,7 @@ https://book.cakephp.org/3/ja/tutorials-and-examples/blog/blog.html
 ## PHP CS のエラー
 php.ini の ;extension=intl の ; を外す
 
-## ファイル構成
+## ファイル構成 PHP3.8
 - doc/
   - schema/
     - ~.erm

@@ -30,3 +30,5 @@ character_set_results=utf8mb4
 - `SET foreign_key_checks = 0;`(外部キー制約を外す)
 - データ操作
 - `SET foreign_key_checks = 1;`(外部キー制約を設定)
+
+## EXPLAIN

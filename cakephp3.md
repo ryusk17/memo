@@ -54,3 +54,9 @@ php.ini の ;extension=intl の ; を外す
     - css/
     - js/
   - .htaccess
+
+
+## メソッド
+- getAttribute()
+  - 全てのルーティングパラメーターを配列として取得
+  - `$params = $this->request->getAttribute('params');`

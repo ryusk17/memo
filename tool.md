@@ -1,5 +1,8 @@
 ## DB
 - A5:SQL Mk-2 (https://a5m2.mmatsubara.com/)
+- HeidiSQL
+- TablePlus
+- DBeaver (https://dbeaver.io/)
 
 ## ブラウザ
 - VIVALDI (https://vivaldi.com/ja/)
@@ -7,6 +10,9 @@
 
 ## エディター
 - Sublime Text (https://www.sublimetext.com/)
+
+## terminal
+- Hyper (https://hyper.is/)
 
 ## Chrome
 - 拡張機能

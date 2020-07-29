@@ -60,3 +60,9 @@ php.ini の ;extension=intl の ; を外す
 - getAttribute()
   - 全てのルーティングパラメーターを配列として取得
   - `$params = $this->request->getAttribute('params');`
+
+## データの扱い
+- 最初の一件取得
+  - $_TABLES->first()
+- 日付のフォーマット (推奨)
+  - $_ENTITY->i18nFormat('yyyy年M月d日')

@@ -7,16 +7,22 @@
 | ワークツリー | インデックス > リポジトリ |
 
 ## branch 作成
-- checkout -b branchName (枝を作成し、その枝に移動)
+- checkout -b newBranchName (枝を作成し、その枝に移動)
 > 枝は親から子へつながるように切る
 > 良い例）master > staging > develop > feature/~
 > 悪い例）develop < master > staging (一つの枝から理由なく何本も派生するのはあまり良くない)
 
 ## branch 変更
 - リモートに存在する別の枝に移動したい
-- checkout 別枝
-- 存在しませんとなる場合
-  - pull origin どの枝でも可 (リモートをローカルに反映させる)(親の枝を pull するのが吉 ex. pull origin develop)
+  - checkout 別枝
+  - 存在しませんとなる場合
+    - pull origin どの枝でも可 (リモートをローカルに反映させる)(親の枝を pull するのが吉 ex. pull origin develop)
+- ブランチ変更時、現在のステージングが邪魔する
+  - checkout, restore によって回避
+    - 回避できない場合
+      - 適当なメッセージでコミットを行う(push は絶対にしないこと)
+      - 別の枝に移動し、回避できなかった枝を削除する
+      - もう一度削除した枝と同名の枝を作成し、リモートから pull する (ステージングする前の枝に戻る)
 
 ## push
 - branch (枝の確認)

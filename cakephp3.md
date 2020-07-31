@@ -66,3 +66,5 @@ php.ini の ;extension=intl の ; を外す
   - $_TABLES->first()
 - 日付のフォーマット (推奨)
   - $_ENTITY->i18nFormat('yyyy年M月d日')
+- カラムの取得
+  - $this->_TABLES->schema()->columns()

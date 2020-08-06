@@ -14,8 +14,16 @@
   - プロパティ名:後の空白無し
     >`grep -r '[a-z]:[^ ]' --include='*.css' . | grep -v '[{,]' | grep -v 'assets/'`
 
-- PHP、JS
+- PHP, JS
   - 関数の引数 ダブルクォーテーション囲み
     >`grep -rE '[a-zA-Z0-9_]+\("' --include='*.php' --include='*.js' . | grep -v 'assets/'`
   - 連想配列のkey ダブルクォーテーション囲み
     >`grep -rE '\$[a-zA-Z0-9_]+\[["]' --include='*.php' --include='*.js' . | grep -v 'assets/'`
+  - 命名規則に沿っていないPHP変数名
+    >`rep -rn -e '\$[a-z]*[_-]\(!GET\)' -e '\$[A-Z]' -e '\$[a-z]*[A-Z]\{2\}' --include='*.php' .`
+
+## alias 作成
+- vim /home/_USER_/.bashrc
+- エイリアスの記述 `alias hoge='cd /home/'`
+- 再起動
+- `$ alias` 確認

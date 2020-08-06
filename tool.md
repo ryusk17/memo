@@ -13,6 +13,7 @@
 
 ## terminal
 - Hyper (https://hyper.is/)
+- Termius (https://termius.com/)
 
 ## Chrome
 - 拡張機能
@@ -20,3 +21,11 @@
 
 - developer tool
   - Ctrl + shift + P Capture full screen size (全画面スクショ)
+
+## Web
+- ラッコツールズ (https://rakko.tools/)
+
+## 資格
+- LPI (https://www.lpi.org/ja/)
+- CCNA
+- Oracle Master

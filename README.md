@@ -1,6 +1,7 @@
 # プログラミングする上で
 * 疎結合 > 密結合
 * MarkDown 記法
+* 即値とマジックナンバー (http://www.kijineko.co.jp/tech/superstitions/there-must-not-be-immediates.html)
 
 ## PHP tips
 ```php

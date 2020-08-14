@@ -25,5 +25,9 @@
 ## alias 作成
 - vim /home/_USER_/.bashrc
 - エイリアスの記述 `alias hoge='cd /home/'`
-- 再起動
+- 再起動 `$ reboot` or 反映 `$ source _PATH_/.bashrc`
 - `$ alias` 確認
+
+## プロンプトの変更
+- vim /home/_USER_/.bashrc
+- 反映 `$ source _PATH_/.bashrc`

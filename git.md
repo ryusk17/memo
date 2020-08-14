@@ -66,3 +66,10 @@
 
 ## 注意事項
 - シンボリックリンクは commit しない (各環境に左右されるため)
+
+## alias 作成
+- vim ~/.gitconfig に追記
+
+## log
+- ツリー表示
+  - 例）`$ git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative` (alias にした方が吉)

@@ -25,6 +25,8 @@ php.ini の ;extension=intl の ; を外す
     - ~.erm
     - ~.sql
 - src/
+  - bin (cake コマンドが使える階層`./cake bake` 上の階層の場合(src/)：`bin/cake bake`)
+    - cake
   - config/
     - .env
     - .env.default
@@ -68,3 +70,6 @@ php.ini の ;extension=intl の ; を外す
   - $_ENTITY->i18nFormat('yyyy年M月d日')
 - カラムの取得
   - $this->_TABLES->schema()->columns()
+
+## bake コマンド
+- bakeはcakeコマンドから実行しますが、cakeコマンドのパスは「[プロジェクトのパス]/bin」になります

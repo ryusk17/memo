@@ -31,7 +31,7 @@ php.ini の ;extension=intl の ; を外す
     - .env
     - .env.default
     - app.php
-    - bootstrap.php
+    - bootstrap.php (config/ を読み込み 初期設定のようなもの) *1
     - const.php (定数定義 (案件による))
     - routes.php (ルーティング設定)
   - src/
@@ -51,11 +51,31 @@ php.ini の ;extension=intl の ; を外す
         - view.ctp
       - Layout/
         - default.php (ヘッドタグ、CSS・JS読み込み等)
+  - vender/ (根幹記述)
   - webroot/
     - assets/
     - css/
     - js/
   - .htaccess
+
+*1
+```
+/*
+ * Read configuration file and inject configuration into various
+ * CakePHP classes.
+ *
+ * By default there is only one configuration file. It is often a good
+ * idea to create multiple configuration files, and separate the configuration
+ * that changes from configuration that does not. This makes deployment simpler.
+ */
+try {
+    Configure::config('default', new PhpConfig());
+    Configure::load('app', 'default', false);
+    Configure::load('const'); ← config/ 内で定数定義ファイル(const.php)を作成した場合の読み込ませ方
+} catch (\Exception $e) {
+    exit($e->getMessage() . "\n");
+}
+```
 
 
 ## メソッド

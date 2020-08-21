@@ -30,7 +30,7 @@ php.ini の ;extension=intl の ; を外す
   - config/
     - .env
     - .env.default
-    - app.php
+    - app.php (webroot のパスなどの定数定義)
     - bootstrap.php (config/ を読み込み 初期設定のようなもの) *1
     - const.php (定数定義 (案件による))
     - routes.php (ルーティング設定)
@@ -93,3 +93,6 @@ try {
 
 ## bake コマンド
 - bakeはcakeコマンドから実行しますが、cakeコマンドのパスは「[プロジェクトのパス]/bin」になります
+
+## コレクション class Cake\Collection\Collection
+https://book.cakephp.org/3/ja/core-libraries/collections.html

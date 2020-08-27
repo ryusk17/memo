@@ -18,6 +18,8 @@
 ## Chrome
 - 拡張機能
   - Talend API Tester (API 可視化)
+  - FireShot
+  - Perfect Pixel
 
 - developer tool
   - Ctrl + shift + P Capture full screen size (全画面スクショ)

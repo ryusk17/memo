@@ -38,7 +38,7 @@
 - log (ログ)
 
 ## rebase
-- status / branch (確認してから始める)
+- status / branch (確認してから始める) (rebase 先にマージされていないプッシュが残っていないか)
 - checkout 対象枝 (枝を変える) ex. checkout develop
 - (branch) (確認！)
 - pull origin branchName (更新) ex. pull origin develop

@@ -57,6 +57,7 @@ php.ini の ;extension=intl の ; を外す
     - css/
     - js/
   - .htaccess
+  - composer.lock (plugin 記述)
 
 *1
 ```

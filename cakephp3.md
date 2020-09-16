@@ -97,3 +97,7 @@ try {
 
 ## コレクション class Cake\Collection\Collection
 https://book.cakephp.org/3/ja/core-libraries/collections.html
+
+## $this->Html->script
+echo $this->Html->script('sample.js'); // その場所で出力するのでechoが必要
+$this->Html->script('sample.js', ['block' => true]); // その場所で出力せずfetchのタイミングで出力されるのでechoはいらない

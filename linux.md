@@ -2,6 +2,7 @@
 - shutdown -h now (シャットダウン)
 - Ctrl + C (強制的に抜ける)
 - ip a (IPアドレス)
+- jq
 
 ## 構文チェックコマンド
 - HTML

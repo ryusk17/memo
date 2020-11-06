@@ -10,10 +10,12 @@
 
 ## エディター
 - Sublime Text (https://www.sublimetext.com/)
+- tmux
 
 ## terminal
 - Hyper (https://hyper.is/)
 - Termius (https://termius.com/)
+- MSYS2
 
 ## Chrome
 - 拡張機能
@@ -26,8 +28,14 @@
 
 ## Web
 - ラッコツールズ (https://rakko.tools/)
+- MOONGIFT (https://www.moongift.jp/)
 
 ## 資格
 - LPI (https://www.lpi.org/ja/)
 - CCNA
 - Oracle Master
+
+## プラグイン
+- PHP-CS-Fixer
+- awesome mysql (awesome で検索するとよいプラグインが出てくる)
+- Oh My Zsh

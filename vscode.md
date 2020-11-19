@@ -46,3 +46,7 @@ class="abc_xyz -> class="abc-xyz
 \s([a-zA-z0-9]*)_([a-zA-z0-9]*)" -> {半角スペース}$1-$2"
 
 ```
+
+## settings
+- color https://code.visualstudio.com/api/references/theme-color
+  - "workbench.colorTheme": "Solarized Light",

@@ -6,15 +6,16 @@ set incsearch
 set smartindent
 set laststatus=2
 set wildmenu
+set t_Co=256
 set background=dark
 colorscheme gruvbox
 set showmatch matchtime=1
 set showcmd
 set display=lastline
+"set list
 set fenc=utf-8
 set virtualedit=onemore
 inoremap <silent> jj <Esc>
-"set list
 set nrformats=
 set ambiwidth=double
 cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'

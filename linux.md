@@ -32,3 +32,6 @@
 ## プロンプトの変更
 - vim /home/_USER_/.bashrc
 - 反映 `$ source _PATH_/.bashrc`
+
+## 検索
+`ag '検索ワード' --php --depth 30 --ignore-dir test --ignore-dir test2 検索場所`

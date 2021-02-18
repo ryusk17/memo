@@ -75,3 +75,15 @@
 ## log
 - ツリー表示
   - 例）`$ git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative` (alias にした方が吉)
+
+## tig
+プラグイン
+
+## 開発フロー
+### GitFeatureFlow
+
+master -> feature: 開発
+master -> staging: 検証
+
+1. feature -> staging: 検証環境にて動作確認
+2. feature -> master: 本番環境反映

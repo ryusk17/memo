@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="keywords" content="体験記,合格,予備校,大学受験,東進," />
+    <meta name="description" content="2020年入試を制した東進生の現役合格の秘訣が満載。" />
+    <meta property="og:site_name" content="合格体験記2020｜予備校・大学受験の東進">
+    <meta property="og:ttl" content="合格体験記2020">
+    <meta property="og:description" content="2020年入試を制した東進生の現役合格の秘訣が満載。">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="http://www.toshin.com/sp/taikenki/index.php">
+    <title>合格体験記2020｜予備校・大学受験の東進</title>
+    <link rel="stylesheet" href="https://www.toshin.com/IncUnit/Header_20171220.css">
+    <link rel="stylesheet" href="https://www.toshin.com/css/useful_pc.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.4.1/css/swiper.min.css">
+    <link rel="stylesheet" href="css/swiper-custom.css">
+    <link href="css/common.css" rel="stylesheet">
+    <link href="css/style.css?1" rel="stylesheet">
+    <link rel="stylesheet" href="css/ribbon.css">
+    <link rel="stylesheet" href="css/top_button.css">
+    <link rel="alternate" media="only screen and (max-width: 640px)" href="https://www.toshin.com/sp/taikenki/" />
+
+    <link rel="stylesheet" href="css/lity.min.css">
+    <link href="css/litybox.css" rel="stylesheet">
+    <script src="//ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.2.js"></script>
+    <script src="js/jquery.lazyload-any.min.js"></script>
+    <script src="js/lity.min.js"></script>
+    <script src="js/top_button.js?<?php echo rand(); ?>"></script>
+
+  </head>
+  <body>
+    <header class="bg-pink">
+      <div id="mv" class="container header-inner">
+        <h1>
+          <a href="index.php">
+            <img src="img/head_main_pc.jpg?1=2" alt="2020年合格体験記 投票ランキングや検索機能も充実。" border="0">
+          </a>
+        </h1>
+        <?php $countText = postingCountText(); ?>
+        <h2 id="mv-description">ぞくぞく公開中！<?php if (!empty($countText)) { ?><span><?php echo $countText; ?></span><?php } ?>東進生の<br>現役合格の秘訣が満載！</h2>
+      </div>
+    </header>
+
+
+    <div class ="main wrapper">
+
+      <a href="#search" class="topBtn" id="topBtn"><img src="img/btn-search.png" alt="検索" border="0"></a>
+
+      <?php //現在閉じてます
+      // if (!(( time() > mktime( 23,59,59,3,1,2019 )) && ( count( $bestFiveArray) > 0 ))) {
+        if(false) {
+      ?>
+        <section class="ranking">
+          <div class="container">
+            <div class="ribbon-wrap">
+              <h3 class="ribbon"><i><u>体験記 投票ランキング Best5</u></i></h3>
+            </div>
+            <div class="swiper-container">
+              <div class="swiper-wrapper">
+                <?php foreach($bestFiveArray as $key => $value) { ?>
+                  <?php $key++; ?>
+                  <div class="grid bg-opacity-pink swiper-slide">
+                    <div class="grid-col w30">
+                      <div class="person-img">
+                        <p class="icon-rank bg-pink pa-10">第<?php echo $key ?>位</p>
+                        <div class ="person-img-box">
+                          <p class ="no-img">no image</p>
+                          <?php if (!empty($value['photo_web'])) { ?>
+                            <img src="<?php echo $seitoImageDir . replaceImageFileName($value['photo_web'], 'l'); ?>" alt="">
+                          <?php } ?>
+                        </div>
+                        <div class="caption flex p-8 pl-4 pr-4">
+                          <?php  if(!isBot($ua)){ ?>
+                          <span class="font-16"><?php echo $value['seito_name']; ?></span><span class="keisho"><?php if (isset($value['seito_seibetsu'])) { echo seibetsu($value['seito_seibetsu']); } ?></span>
+                          <?php } ?>
+                          <span class="font-14"><?php echo school($value['seito_kousha_type']). "" . $value['seito_kousha'] ?></span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="grid-col w70">
+                      <div class="univ flex bg-pink p-10 pl-8 pr-20">
+                        <div>
+                          <span class="font-24"><?php echo $value['seito_nyugaku']; ?></span>
+                          <span class="font-18 pl-4">
+                            <?php if(mb_strlen($value['seito_nyugaku_dept'],"UTF-8")>22) { ?>
+                              <span class="course"><?php echo mb_convert_kana($value['seito_nyugaku_dept'],"k","UTF-8"); ?>学部<br></span>
+                            <?php } else { ?>
+                              <span class="course"><?php echo mb_convert_kana(getDeptName($value['seito_nyugaku'] , $value['seito_nyugaku_dept']),"k","UTF-8"); ?><br></span>
+                            <?php } ?>
+                          </span>
+                        </div>
+                        <div>
+                          <span class="font-14"><?php echo $value['seito_hs']; ?></span>
+                        </div>
+                      </div>
+                      <div class="p-10 pl-8 pr-8 ranking-text">
+                        <p class="pink font-20 p-8"><?php echo $value['title']; ?></p>
+                        <p class="body"><?php echo mb_strimwidth($value['body'],0,198,"...","UTF-8"); ?></p>
+                        <a href="./detail.php?id=<?php echo $value['ID']; ?>" class ="pink"><span class="readmore font-4 pr-1">→続きを読む</span></a>
+                      </div>
+                    </div>
+                  </div>
+                <?php } ?>
+              </div><!-- swiper-wrapper -->
+            </div>
+            <div class="swiper-pagination"></div>
+            <div class="swiper-button-prev"></div>
+            <div class="swiper-button-next"></div>
+          </div>
+        </section><!-- ranking -->
+      <?php } ?>
+
+      <div id="taikenkiLink" align="right" style="width:900px;margin-left:auto;margin-right:auto;margin-top:12px;margin-bottom:12px;">
+        <a href="/taikenki/2019/">2019年の合格体験記はこちら</a>
+      </div>
+      <div style="text-align: center;">
+      	<a href="https://www.toshin.com/taikenki_contests/"><img src="img/contest_pc.jpg"></a>
+      </div>
+      <div style="text-align: center; margin-top: 30px;">
+      	<a href="https://www.toshin.com/taikenki_contests/pc/manga"><img src="img/taikenki_manga_banner.jpg"></a>
+      </div>
+
+      <?php if (time() < mktime(00, 00, 00, 5, 22, 2020)) : ?>
+      <?php include("/nfs/httpd/www.toshin.ac.jp/html/IncUnit/banners/athome/include/include-banner.php"); ?>
+      <?php else : ?>
+        <div style="width: 1000px; margin:0 auto; text-decoration: none;">
+          <? include('/nfs/httpd/www.toshin.ac.jp/html/IncUnit/apply_banner_3.php');//3点セットバナー20190412?>
+        </div>
+      <?php endif; ?>
+
+
+      <a id="search"></a>
+      <div class="bg-opacity-pink mt-50">
+
+
+        <section class="search container bg-pink" id="search-box">
+          <h3 class="font-24 p-4 text-center">キーワードから合格体験記を絞り込む</h3>
+          <form action="./index.php#result" method="get">
+            <div class="serach-box-wrap bg-white">
+
+              <div class="grid serach-box-inner">
+                <div class="grid-col w80 serach-box-info">
+                  <div class="inputs grid">
+                    <div class="search-box grid-col">
+                      <p class="pb-10"><i class="fa fa-university" aria-hidden="true"></i>大学</p>
+                      <div id="selected-univ-front">
+                        <a href="#selects" id="select-univ" data-lity="data-lity">大学を選択</a>
+                      </div>
+                    </div>
+                    <div class="search-box grid-col ml-20">
+                      <p class="pb-10"><i class="fa fa-search" aria-hidden="true"></i>キーワード</p>
+                      <div class="">
+                        <input type="text" name="keyword" placeholder="フリーワード検索" id="search-word" value="<?php if(!empty($_GET['keyword'])) echo $_GET['keyword']; ?>">
+                      </div>
+                    </div>
+                  </div>
+                  <?php include 'litybox.php'; ?>
+                </div>
+                <div class="grid-col w20 submit-button">
+                  <div id="submit" class="button bg-blue">検索</div>
+                </div>
+              </div>
+
+            </div>
+          </form>
+        </section><!-- search -->
+
+        <?php if (!empty($wellSearchedSchools)) { ?>
+          <section class="container">
+            <div class="search-pop">
+              <div class="search-box check-univ">
+                <p class="pb-15"><i class="fa fa-university" aria-hidden="true"></i>よく検索されている大学</p>
+                <div class="flex font-18 white">
+                  <?php foreach($wellSearchedSchools as $school) { ?>
+                    <label class="univ-button button bg-blue">
+                      <span><a href="./index.php?select_univ_school=<?php echo $school . '#result'; ?>"><?php echo $school; ?></a></span>
+                    </label>
+                  <?php } ?>
+                </div>
+              </div>
+            </div>
+          </section>
+        <?php } ?>
+
+        <div style="margin-top:10px;">
+          <div class="rem-banner-box" data-path="13"></div>
+        </div>
+
+
+        <?php if (!empty($_GET)) { // 検索結果表示  ?>
+
+          <?php $increment = 0; ?>
+          <?php $taikenkiDataList = array(); ?>
+          <?php $univOrderCount = 0; ?>
+
+          <?php foreach ($resultSchools as $univOrderValue => $schoolName) { ?>
+            <?php if (count($taikenkiDataList) < TAIKENKI_COUNT_PER_BANNER) { ?>
+              <?php $univOrderCount++; ?>
+              <?php $searchParam = $gDataHash['cgi']; ?>
+              <?php $searchParam['univ_order_value'] = $univOrderValue; ?>
+              <?php $successfuldata = getResultDefault($searchParam, false); ?>
+              <?php if (!empty($successfuldata['data'])) { ?>
+                <?php $taikenkiDataList = array_merge($taikenkiDataList, $successfuldata['data']); ?>
+              <?php } ?>
+            <?php } ?>
+
+            <?php while (count($taikenkiDataList) >= TAIKENKI_COUNT_PER_BANNER || ($univOrderCount == count($resultSchools) && count($taikenkiDataList) > 0)) { ?>
+                <section id="lazy-section-<?php echo $increment; ?>" class="results pt-40">
+                    <?php if ($increment > 0) { ?>
+                        <script type="text/lazyload">
+                        <!-- バナー -->
+                        <?php require( "inc_banner.php" ); ?>
+                    <?php } ?>
+                    <div class="container"<?php echo ($increment == 0) ? ' id="result"' : ''; ?>>
+                        <div class="results-par-univ flex">
+                            <?php $taikenkiViewCount = 0; ?>
+                            <?php while (($taikenkiData = array_shift($taikenkiDataList)) && $taikenkiViewCount < TAIKENKI_COUNT_PER_BANNER) { ?>
+                                <?php $taikenkiViewCount++; ?>
+                                <a class="result grid bg-white font-14 mb-10" href="./detail.php?id=<?php echo $taikenkiData['ID']; ?>">
+                                    <div class ="result-info01">
+                                        <div class="grid-col person-img-box">
+                                            <p class ="no-img">no image</p>
+                                            <?php if (!empty($taikenkiData['photo_web'])) { ?>
+                                                <img src="<?php echo $seitoImageDir . replaceImageFileName($taikenkiData['photo_web'], 's'); ?>" alt="" class="m-0a">
+                                            <?php } ?>
+                                        </div>
+                                        <div class="grid-col results-comment">
+                                            <p class="univ pink font-20">
+                                                <span><?php echo $taikenkiData['seito_nyugaku']; ?></span>
+                                                <span class="pink font-16 pl-4">
+                                                    <?php if (mb_strlen($taikenkiData['seito_nyugaku_dept'], "UTF-8") > 22) { ?>
+                                                        <span class="course"><?php echo mb_convert_kana($taikenkiData['seito_nyugaku_dept'], "k", "UTF-8"); ?>学部<br></span>
+                                                    <?php } else { ?>
+                                                        <span class="course"><?php echo mb_convert_kana(getDeptName($taikenkiData['seito_nyugaku'], $taikenkiData['seito_nyugaku_dept']), "k", "UTF-8"); ?><br></span>
+                                                    <?php } ?>
+                                                </span>
+                                            </p>
+                                            <div>
+                                                <p class="p-10"><?php echo $taikenkiData['title']; ?></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class ="result-info02">
+                                        <?php  if(!isBot($ua)){ ?>
+                                            <p class="name"><?php echo $taikenkiData['seito_name']; ?><?php if (isset($taikenkiData['seito_seibetsu'])) { echo seibetsu($taikenkiData['seito_seibetsu']); } ?></p>
+                                        <?php } ?>
+                                        <p class="toshin-school"><?php echo school($taikenkiData['seito_kousha_type']) . "" . $taikenkiData['seito_kousha'] ?></p>
+                                        <p class="seito-high-school"><?php echo $taikenkiData['seito_hs']; ?></p>
+                                        <div class="info-more">
+                                            <span class="readmore font-4 pr-1">→続きを読む</span>
+                                            <div class ="fav-count"><i class="fa fa-heart pink" aria-hidden="true"></i><?php echo $taikenkiData['count']; ?></div>
+                                        </div>
+                                    </div>
+                                </a>
+                            <?php } ?>
+                        </div><!-- results-par-univ -->
+                        <?php if(time() < mktime(00,00,00,3,27,2020)){ include("/nfs/httpd/www.toshin.ac.jp/html/tokubetsu_shotai/pc/include-banner.php"); } ?>
+                    </div><!-- container -->
+                    <?php if ($increment > 0) { ?>
+                        </script>
+                    <?php } ?>
+                </section><!-- results -->
+                <?php $increment++; ?>
+            <?php } ?><!-- while閉じ -->
+        <?php } ?><!-- $resultSchoolsのforeach閉じ -->
+
+        <?php } else { /* デフォルト表示 */ ?>
+
+          <?php $universityCount = 0; ?>
+          <?php foreach($resultSchools as $schoolIndex => $schoolName): ?>
+            <?php $searchParam = $gDataHash['cgi']; ?>
+            <?php $searchParam['select_univ_school'] = $schoolName; ?>
+            <?php unset($searchParam['univ_other']); ?>
+            <?php $successfuldata = getResult($searchParam); ?>
+            <?php if (!empty($successfuldata['data'])): ?>
+              <section class="results pt-40">
+                <div class="container" <?php echo ($universityCount == 0) ? ' id="result"' : ''; ?>>
+                  <a class="result-university" href="./index.php?select_univ_school=<?php echo $schoolName; ?>">
+                    <div class="univ-wrap font-20 m-20 p-10 pl-10"><?php echo $schoolName; ?></div>
+                  </a>
+                  <div class="results-par-univ flex">
+                    <?php $studentCount = 0; ?>
+                    <?php foreach($successfuldata['data'] as $key => $value): ?>
+                      <a class="result grid bg-white font-14 mb-10" href="./detail.php?id=<?php echo $value['ID']; ?>">
+                        <div class ="result-info01">
+                          <div class="grid-col person-img-box">
+                            <p class ="no-img">no image</p>
+                            <?php if (!empty($value['photo_web'])) { ?>
+                              <img src="<?php echo $seitoImageDir . replaceImageFileName($value['photo_web'], 's'); ?>" alt="" class="m-0a">
+                            <?php } ?>
+                          </div>
+                          <div class="grid-col results-comment">
+                            <p class="univ pink font-20">
+                              <span><?php echo $value['seito_nyugaku']; ?></span>
+                              <span class="pink font-16 pl-4">
+                                <?php if(mb_strlen($value['seito_nyugaku_dept'],"UTF-8")>22) { ?>
+                                  <span class="course"><?php echo mb_convert_kana($value['seito_nyugaku_dept'],"k","UTF-8"); ?>学部<br></span>
+                                <?php } else { ?>
+                                  <span class="course"><?php echo mb_convert_kana(getDeptName($value['seito_nyugaku'] , $value['seito_nyugaku_dept']),"k","UTF-8"); ?><br></span>
+                                <?php } ?>
+                              </span>
+                            </p>
+                            <div>
+                              <p class="p-10"><?php echo $value['title']; ?></p>
+                            </div>
+                          </div>
+                        </div>
+                        <div class ="result-info02">
+                        <?php  if(!isBot($ua)){ ?>
+                          <p class="name"><?php echo $value['seito_name']; ?><?php if (isset($value['seito_seibetsu'])) { echo seibetsu($value['seito_seibetsu']); } ?></p>
+                        <?php } ?>
+                          <p class="toshin-school"><?php echo school($value['seito_kousha_type']). "" . $value['seito_kousha'] ?></p>
+                          <p class="seito-high-school"><?php echo $value['seito_hs']; ?></p>
+                          <div class="info-more">
+                            <span class="readmore font-4 pr-1">→続きを読む</span>
+                            <div class ="fav-count"><i class="fa fa-heart pink" aria-hidden="true"></i><?php echo $value['count']; ?></div>
+                          </div>
+                        </div>
+                      </a>
+                    <?php $studentCount++; ?>
+                    <?php if ($studentCount === 10) { break 1; } //各大学10人まで表示?>
+                    <?php endforeach; ?>
+                  </div><!-- results-par-univ -->
+                </div>
+              </section><!-- results -->
+              <?php endif; ?>
+            <?php $universityCount++; ?>
+            <? if ($universityCount === 4) { break; } //4大学まで表示?>
+          <?php endforeach; ?>
+
+        <?php } ?>
+      </div>
+    </div>
+
+    <!-- main -->
+    <?php include 'footer.php'; ?>
+
+    <!-- <footer id="footer_links" class="footer">
+    <div class="link-document"><a href="http://www.toshin.com/form/es/"></a></div>
+    <div class="link-lesson"><a href="http://www.toshin.com/experience/"></a></div>
+    <div class="link-interview"><a href="http://www.toshin.com/ko_ex/"></a></div>
+    <div class="to-top">
+        <p>TOP</p>
+        <div class="to-top-button"></div>
+    </div>
+    </footer> -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.4.1/js/swiper.min.js"></script>
+
+    <script>
+      var mySwiper = new Swiper ('.swiper-container', {
+      loop: true,
+      slidesPerView: 1,
+      autoplay:5000,
+      speed:600,
+      shortSwipes: false,
+      preventClicks: false,
+      //spaceBetween: 10,
+      centeredSlides : true,
+      pagination: '.swiper-pagination',
+      nextButton: '.swiper-button-next',
+      prevButton: '.swiper-button-prev'
+      })
+      $(function() {
+      $('#submit').click(function() {
+      $(this).closest('form').trigger('submit');
+      });
+      $('[id^="lazy-section-"]').not(':first').lazyload({});
+      });
+    </script>
+    <?php require_once '/nfs/httpd/www.toshin.ac.jp/html/remarketing/banner.php'; ?>
+  </body>
+</html>

@@ -1,0 +1,250 @@
+# This file is auto-generated from the current state of the database. Instead
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
+#
+# This file is the source Rails uses to define your schema when running `rails
+# db:schema:load`. When creating a new database, `rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
+#
+# It's strongly recommended that you check this file into your version control system.
+
+<<<<<<< HEAD
+ActiveRecord::Schema.define(version: 2020_06_08_015426) do
+=======
+ActiveRecord::Schema.define(version: 2020_06_05_093912) do
+>>>>>>> 0e064389edac6cc2936351d5048e250b4a674529
+
+  create_table "order_candidates", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.bigint "pharmacy_id", null: false
+    t.bigint "stockable_item_id", null: false
+    t.boolean "predicted", default: false, null: false
+    t.boolean "recommended", default: false, null: false
+    t.boolean "mute_temporary", default: false, null: false
+    t.boolean "need_order", default: false, null: false
+    t.decimal "predict_stock_quantity", precision: 12, scale: 4, default: "0.0", null: false
+    t.decimal "predict_delivery_quantity", precision: 12, scale: 4, default: "0.0", null: false
+    t.decimal "predicted_order_quantity", precision: 12, scale: 4, default: "0.0", null: false
+    t.text "predicted_detail"
+    t.datetime "predicted_at"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["pharmacy_id", "stockable_item_id"], name: "index_order_candidates_on_pharmacy_id_and_stockable_item_id", unique: true
+    t.index ["stockable_item_id"], name: "index_order_candidates_on_stockable_item_id"
+  end
+
+  create_table "order_items", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.bigint "order_id", null: false
+    t.bigint "orderable_item_id", null: false
+    t.bigint "dealer_id", null: false
+    t.integer "quantity", default: 0, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "created_by", null: false
+    t.string "updated_by", null: false
+    t.index ["order_id"], name: "index_order_items_on_order_id"
+    t.index ["orderable_item_id"], name: "index_order_items_on_orderable_item_id"
+  end
+
+  create_table "order_sdcvan_d_records", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.bigint "order_item_id", null: false
+    t.bigint "order_sdcvan_s_record_id", null: false
+    t.integer "code_type", limit: 1, null: false
+    t.string "code", limit: 14
+    t.string "name"
+    t.string "delivery_date", limit: 6, null: false
+    t.string "delivery_place", limit: 2, null: false
+    t.string "quantity", limit: 5, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["order_item_id"], name: "index_order_sdcvan_d_records_on_order_item_id"
+    t.index ["order_sdcvan_s_record_id"], name: "index_order_sdcvan_d_records_on_order_sdcvan_s_record_id"
+  end
+
+  create_table "order_sdcvan_s_records", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.bigint "order_id", null: false
+    t.bigint "dealer_id", null: false
+    t.string "order_no", limit: 10, null: false
+    t.string "response_code", limit: 4
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["order_id"], name: "index_order_sdcvan_s_records_on_order_id"
+  end
+
+  create_table "orderable_items", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.string "name"
+    t.string "gs1_code", limit: 14, null: false
+    t.string "jan_code", limit: 13
+    t.bigint "stockable_item_id", default: 0
+    t.decimal "quantity", precision: 12, scale: 4, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["gs1_code"], name: "index_orderable_items_on_gs1_code"
+    t.index ["jan_code"], name: "index_orderable_items_on_jan_code"
+    t.index ["stockable_item_id", "name"], name: "index_orderable_items_on_stockable_item_id_and_name", unique: true
+  end
+
+  create_table "orders", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.bigint "pharmacy_id", null: false
+    t.datetime "ordered_at", null: false
+    t.date "delivers_on"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "created_by", null: false
+    t.string "updated_by", null: false
+  end
+
+  create_table "pharmacy_order_systems", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.bigint "pharmacy_id", null: false
+    t.string "order_system", null: false
+    t.string "vancode"
+    t.string "van_id"
+    t.string "van_password"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "created_by", null: false
+    t.string "updated_by", null: false
+  end
+
+  create_table "regular_items", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.bigint "pharmacy_id", null: false
+    t.bigint "stockable_item_id", null: false
+    t.bigint "orderable_item_id", null: false
+    t.bigint "dealer_id"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "created_by", null: false
+    t.string "updated_by", null: false
+    t.index ["orderable_item_id"], name: "index_regular_items_on_orderable_item_id"
+    t.index ["pharmacy_id", "orderable_item_id"], name: "index_regular_items_on_pharmacy_id_and_orderable_item_id", unique: true
+    t.index ["pharmacy_id", "stockable_item_id"], name: "index_regular_items_on_pharmacy_id_and_stockable_item_id"
+    t.index ["stockable_item_id"], name: "index_regular_items_on_stockable_item_id"
+  end
+
+  create_table "sdcvan_deliveries", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.bigint "pharmacy_id", null: false
+    t.string "file_name", null: false
+    t.datetime "slip_created_at", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "created_by", null: false
+    t.string "updated_by", null: false
+  end
+
+  create_table "sdcvan_delivery_d_records", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.bigint "sdcvan_delivery_id", null: false
+    t.integer "s_index", null: false
+    t.integer "d_index", null: false
+    t.string "name"
+    t.date "slipped_on", null: false
+    t.string "slip_number", limit: 10, null: false
+    t.integer "slip_row_number", null: false
+    t.integer "item_code_type", limit: 1, null: false
+    t.string "item_code", null: false
+    t.integer "quantity", null: false
+    t.date "expires_on"
+    t.string "lot", limit: 200
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "created_by", null: false
+    t.string "updated_by", null: false
+    t.index ["sdcvan_delivery_id"], name: "index_sdcvan_delivery_d_records_on_sdcvan_delivery_id"
+  end
+
+  create_table "stock_log_nsips_medicines", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.bigint "stock_log_id", null: false
+    t.bigint "nsips_id", null: false
+    t.bigint "nsips_medicine_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["nsips_id", "nsips_medicine_id"], name: "index_stock_log_nsips_medicines_on_nsips_medicine_id", unique: true
+    t.index ["stock_log_id"], name: "index_stock_log_nsips_medicines_on_stock_log_id"
+  end
+
+  create_table "stock_log_sdcvan_delivery_d_records", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.bigint "stock_log_id", null: false
+    t.bigint "sdcvan_delivery_d_record_id", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["sdcvan_delivery_d_record_id"], name: "index_s_l_s_d_d_r_on_sdcvan_delivery_d_record_id", unique: true
+    t.index ["stock_log_id"], name: "index_stock_log_sdcvan_delivery_d_records_on_stock_log_id"
+  end
+
+  create_table "stock_logs", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.bigint "pharmacy_id", null: false
+    t.bigint "stock_id", null: false
+    t.integer "action", limit: 1, null: false
+    t.decimal "delta_quantity", precision: 12, scale: 4, null: false
+    t.datetime "logged_at", null: false
+    t.string "options", limit: 8192
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["stock_id", "logged_at", "id"], name: "index_stock_logs_on_stock_id_and_logged_at_and_id"
+    t.index ["stock_id"], name: "index_stock_logs_on_stock_id"
+  end
+
+  create_table "stockable_items", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "unit", limit: 16, null: false
+    t.float "price"
+    t.string "yj_code", limit: 12
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["name"], name: "index_stockable_items_on_name", unique: true
+    t.index ["yj_code"], name: "index_stockable_items_on_yj_code"
+  end
+
+  create_table "stocks", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.bigint "pharmacy_id", null: false
+    t.bigint "stockable_item_id", null: false
+    t.decimal "quantity", precision: 12, scale: 4, default: "0.0", null: false
+    t.string "order_items", limit: 8192
+    t.datetime "calculated_logged_at"
+    t.bigint "calculated_log_id", default: 0, null: false
+    t.datetime "last_dispensed_on"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["pharmacy_id", "stockable_item_id"], name: "index_stocks_on_pharmacy_id_and_stockable_item_id", unique: true
+    t.index ["pharmacy_id", "updated_at"], name: "index_stocks_on_pharmacy_id_and_updated_at"
+    t.index ["stockable_item_id"], name: "index_stocks_on_stockable_item_id"
+  end
+
+  create_table "stocktaking_items", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.bigint "stocktaking_id", null: false
+    t.bigint "stockable_item_id", null: false
+    t.decimal "before_quantity", precision: 12, scale: 4, null: false
+    t.decimal "quantity", precision: 12, scale: 4, null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "created_by", null: false
+    t.string "updated_by", null: false
+    t.index ["stockable_item_id"], name: "index_stocktaking_items_on_stockable_item_id"
+    t.index ["stocktaking_id"], name: "index_stocktaking_items_on_stocktaking_id"
+  end
+
+  create_table "stocktakings", options: "ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin", force: :cascade do |t|
+    t.bigint "pharmacy_id", null: false
+    t.datetime "taken_at", null: false
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.string "created_by", null: false
+    t.string "updated_by", null: false
+  end
+
+  add_foreign_key "order_candidates", "stockable_items"
+  add_foreign_key "order_items", "orderable_items"
+  add_foreign_key "order_items", "orders"
+  add_foreign_key "order_sdcvan_d_records", "order_items"
+  add_foreign_key "order_sdcvan_d_records", "order_sdcvan_s_records"
+  add_foreign_key "order_sdcvan_s_records", "orders"
+  add_foreign_key "regular_items", "orderable_items"
+  add_foreign_key "regular_items", "stockable_items"
+  add_foreign_key "sdcvan_delivery_d_records", "sdcvan_deliveries"
+  add_foreign_key "stock_log_nsips_medicines", "stock_logs", on_delete: :cascade
+  add_foreign_key "stock_log_sdcvan_delivery_d_records", "stock_logs", on_delete: :cascade
+  add_foreign_key "stock_logs", "stocks"
+  add_foreign_key "stocks", "stockable_items"
+  add_foreign_key "stocktaking_items", "stockable_items"
+  add_foreign_key "stocktaking_items", "stocktakings"
+end

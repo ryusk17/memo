@@ -1,0 +1,9 @@
+SELECT 
+    Areas.area AS `Areas__area`, UnivOrders.name AS `UnivOrders__name`
+    FROM areas Areas 
+    LEFT JOIN toshin_goukaku_taikenki.prefs Prefs 
+        ON Areas.id = Prefs.area_id 
+    LEFT JOIN toshin_goukaku_taikenki.univ_orders UnivOrders 
+        ON Prefs.id = UnivOrders.pref_id 
+    WHERE (UnivOrders.display_order > '0' AND Areas.deleted IS NULL) 
+    ORDER BY Areas.id ASC, UnivOrders.display_order DESC

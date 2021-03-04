@@ -1,0 +1,385 @@
+import copy
+import itertools
+
+import translate_gps as gps
+
+DEBUG=0
+
+class Hatake(object):
+    # TODO: num, length
+    def __init__(self, num=77, length=500):
+        """
+            num: 畝の数
+            length: 畝の長さ [m]
+                10m, 70m の畑で 90cm の畝と仮定して、10m の畝が 77本 ある
+            [y座標について]
+                3: 通る道
+                2: 散布直前座標
+                1: 散布直前座標
+                0: 通る道
+                -1: 給水場所
+        """
+        self.num = num
+        self.length = length
+        self.num_blocks, self.an_arrange = self.calc_block_num()
+        # TODO: souko, 7
+        self.souko = [7, -1] # 初期位置（初期位置は畑によって変更する。7=畝の場所）
+        self.kyusui = [0, -1] # 給水場所 (プログラム中変更のため変更不要)
+        self.lines_not_yet_water = []
+        self.points = []
+
+    def arrange_blocks(self, seqence):
+        """
+        hatake.une_blocks に 畝ブロックを格納する
+        seqence: 並べる順番 2,3,5 からなる列
+        """
+        locate = 0
+        show = []
+        self.une_blocks = []
+        for id, une in enumerate(seqence):
+            if une == 5:
+                self.une_blocks.append(UneBlock(id, 5, locate))
+                locate += 5
+                show.append('|'*5)
+                show.append(' ')
+
+            elif une == 2:
+                self.une_blocks.append(UneBlock(id, 2, locate))
+                # self.points.append(locate + 0)
+                locate += 2
+                show.append('|'*2)
+                show.append(' ')
+
+            elif une == 3:
+                self.une_blocks.append(UneBlock(id, 3, locate))
+                # self.points.append(locate + 0)
+                locate += 3
+                show.append('|'*3)
+                show.append(' ')
+
+        self.water_lines =  [une.line for une in self.une_blocks]
+        return show
+
+    def calc_block_num(self):
+        """
+            ロボットのノズル5本を想定
+            return: 並びを1つ返す
+                    555532 みたいなやつ
+        """
+        blocks = {2: 0, 3: 0, 5: self.num // 5}
+
+        if self.num % 5 == 1:
+            blocks[3] += 2
+            blocks[5] -= 1
+        elif self.num % 5 == 2:
+            blocks[2] += 1
+        elif self.num % 5 == 3:
+            blocks[3] += 1
+        elif self.num % 5 == 4:
+            blocks[2] += 2
+        else:
+            pass
+
+        return (sum(blocks.values()), [e for e in blocks for i in range(blocks[e])])
+
+
+
+class UneBlock(object):
+    def __init__(self, id, kind, locate):
+        self.id = id
+        if kind == 5:
+            self.line = locate + 2
+        elif kind in [3, 2]:
+            self.line = locate
+
+
+class Robot(object):
+    def __init__(self, hatake):
+        """
+            water_flow_rate: 2 L/min
+            speed: 1.2 km/h
+            ・往復にかかる水
+                (往復にかかる時間 min) x (1分で撒く水量 L/min)
+        """
+        # TODO: タンク残量の計算方法は要検討
+        self.water_flow_rate = 2
+        self.speed = 1.2
+        self.required_water = hatake.length / (self.speed * 1000 / 60) * self.water_flow_rate
+        self.history = []
+
+    def go_home(self):
+        print('\t帰ります', self.history)
+        self.move_to(hatake.souko[0])
+        print('\t\t初期位置の line に移動', self.locate)
+
+
+        if self.locate[1] == 3:
+            self.locate[1] = 2
+            print('\t\t家が反対側なので畝の直前位置まで移動', self.locate)
+            self.history.append(tuple(self.locate))
+            self.locate[1] = 0
+            print('\t\t移動位置まで移動', self.locate)
+            self.history.append(tuple(self.locate))
+
+        self.locate[1] = -1
+        print('\t\t初期位置に移動', self.locate)
+        self.history.append(tuple(self.locate))
+
+        print('\t 記録')
+        print('\t 走行距離', self.mileage)
+        print('\t 軌跡', self.history)
+
+
+    def initialize(self):
+        self.water_volume = 0
+        self.mileage = 0
+        self.locate = hatake.souko[:]
+        self.history = []
+
+    def kyusui(self):
+        if hatake.kyusui[0] == self.locate[0]:
+            print('\t\t給水lineにいる')
+        else:
+            self.move_to(hatake.kyusui[0])
+            print('\t\t給水lineまで移動', self.locate)
+
+        self.locate = hatake.kyusui[:]
+        print('\t\t給水場所まで移動', self.locate)
+        self.history.append(tuple(self.locate))
+
+        # TODO: タンク容量200L
+        self.water_volume = 200
+        print('\t\t給水完了')
+
+        # self.locate[1] = 0
+        # print('\t\t移動場所に戻る', self.locate)
+        # self.history.append(tuple(self.locate))
+
+    def lack_of_water(self):
+        if self.water_volume < self.required_water:
+            return True
+        else:
+            return False
+
+    def move_to(self, line):
+        try:
+            print('\t\t', hatake.water_lines.index(line), 'つ目の畝ブロックの line:',line, 'に移動')
+        except:
+            pass
+        self.mileage += abs(self.locate[0] - int(str(line)))
+        self.locate[0] = line
+        if self.locate[1] == -1:
+            self.locate[1] = 0
+        self.history.append(tuple(self.locate))
+
+    def say(self):
+        print('\t\t-----------------')
+        print('\t\t| 位置:', self.locate, '\t|')
+        print('\t\t| 水残量:', self.water_volume, '\t|')
+        print('\t\t| 走行距離:', self.mileage, '\t|')
+        print('\t\t-----------------')
+
+    def start_up(self):
+        self.history.append(tuple(self.locate))
+        self.locate[1] = 0
+        self.history.append(tuple(self.locate))
+
+    def water(self, line):
+        if self.locate[0] == line:
+            print('\t\t散布するlineにいる')
+            self.locate[1] = 1
+        else:
+            self.move_to(line)
+        if self.locate[1] == 0:
+            self.locate[1] += 1
+        elif self.locate[1] == 3:
+            self.locate[1] -= 1
+        print('\t\t直前位置まで移動', self.locate)
+        self.history.append(tuple(self.locate))
+
+        self.water_volume -= self.required_water
+        self.locate[1] = (self.locate[1] + 2) % 4
+        print('\t\tline =', line, 'に散布, 移動座標まで移動', self.locate)
+        self.history.append(tuple(self.locate))
+
+
+
+
+class unique_element:
+    def __init__(self,value,occurrences):
+        self.value = value
+        self.occurrences = occurrences
+
+
+def perm_unique(elements):
+    eset=set(elements)
+    listunique = [unique_element(i,elements.count(i)) for i in eset]
+    u=len(elements)
+    return perm_unique_helper(listunique,[0]*u,u-1)
+
+def perm_unique_helper(listunique,result_list,d):
+    if d < 0:
+        yield tuple(result_list)
+    else:
+        for i in listunique:
+            if i.occurrences > 0:
+                result_list[d]=i.value
+                i.occurrences-=1
+                for g in  perm_unique_helper(listunique,result_list,d-1):
+                    yield g
+                i.occurrences+=1
+
+
+def how_to_water(hatake, robot):
+
+    water_orders = {tuple(hatake.water_lines[:]), tuple(hatake.water_lines[::-1])}
+    print('\t散布する畝の順番', water_orders)
+    print()
+
+
+    global min_mileage
+
+    historys = {}
+    for order in water_orders:
+        robot.initialize()
+        robot.start_up()
+
+        print('------ 散布する順番', order, '-------')
+        print('history', historys)
+
+        for step, line in enumerate(order):
+            print('\tstep', step, robot.history)
+            robot.say()
+            
+            if robot.lack_of_water() and line != order[-1]:
+                print('\t給水', robot.history)
+                robot.kyusui()
+
+                print()
+                print()
+
+            robot.water(line)
+
+            print('')
+            print('')
+
+            if robot.mileage > min_mileage:
+                print('robot.mileage', robot.mileage)
+                print('min_mileage:', min_mileage)
+                print('長すぎ！')
+                break
+        else:
+            robot.go_home()
+            if robot.mileage > min_mileage:
+                print('robot.mileage', robot.mileage)
+                print('min_mileage:', min_mileage)
+                print('惜しい！')
+            else:
+                print('記録します．')
+                if robot.mileage in historys:
+                    historys[robot.mileage].add(tuple(robot.history))
+                else:
+                    historys[robot.mileage] = {tuple(robot.history)}
+                min_mileage = robot.mileage
+                print('    人人人人人人人')
+                print('  ＜   最短距離   ＞     ', min_mileage)
+                print('    Ｙ^Ｙ^Ｙ^Ｙ^Ｙ')
+
+        print()
+        print()
+    print('~~~~~~~~~~~~~' * 4)
+    print()
+
+    if historys == {}:
+        return
+    else:
+        return min(historys), historys[min(historys)]
+
+
+
+"""
+    best_routes: Dict
+        {mileage: {kyusui_point1: {route1, route2}, kyusui_point2: {route1, route2}}}
+    routes: Dict
+        {mileage: {route1, route2}}
+"""
+
+
+hatake = Hatake(16)
+robot = Robot(hatake)
+
+
+print('畝の数', hatake.num)
+print('給水所', hatake.kyusui)
+print('倉庫(robot の初期位置)', hatake.souko)
+
+print('####################################################################')
+
+
+# from matplotlib import pyplot as plt
+# from mpl_toolkits.mplot3d import Axes3D
+
+
+min_mileage = 10000
+best_routes = {}
+
+
+for seqence in perm_unique(hatake.an_arrange):
+
+    print('\n\n~~ 並べ替え ~~ 並べ替え ~~ 並べ替え ~~並べ替え ~~並べ替え ~~並べ替え ~~\n\n')
+    print('=========================='*3)
+    print('畝ブロック配置', seqence, '(合計', hatake.num_blocks, 'ブロック)')
+    print(*hatake.arrange_blocks(seqence))
+    print('=========================='*3)
+    print()
+
+
+    for line in hatake.water_lines:
+        hatake.kyusui = [line, -1]
+        print('給水箇所',hatake.kyusui, 'の場合')
+
+        best_routes[tuple(hatake.kyusui)] = dict()
+        robot.initialize()
+
+        routes = how_to_water(hatake, robot)
+        print('給水場所', hatake.kyusui,'の場合の最適rotes')
+        print(hatake.kyusui, routes)
+
+        # if routes != {}:
+        # for mileage, route in routes.items():
+        #     if not mileage in best_routes:
+        #         best_routes[mileage] = {}
+        #
+        if routes == None:
+            pass
+        else:
+            if not routes[0]in best_routes:
+                best_routes[routes[0]] = {}
+            best_routes[routes[0]][tuple(hatake.kyusui)] = routes[1]
+
+print('')
+print('= = = = = = = = = = = = = = = = = = = = = = '*2)
+
+gps_coords = gps.get_gps_coords()
+print(len(gps_coords))
+print('走行距離\t最適給水箇所\tルート')
+for mileage, best_coord_and_routes in best_routes.items():
+    for coord, routes in best_coord_and_routes.items():
+        for route in routes:
+            print(mileage, '\t', coord, '\t', route)
+            print('\t\t\t', end='')
+            print('--------------------------------------------------------------------------\n', end=' ')
+            for coord in route:
+                if coord[1] == -1:
+                    print('給水所', end=' ')
+                    print('\n', end=' ')
+                else:
+                    print(gps_coords[coord[0]][coord[1]], end=' ')
+                    print('\n', end=' ')
+            print('--------------------------------------------------------------------------\n', end=' ')
+            print()
+
+
+def output(str):
+    if DEBUG == 0:
+        print(str, end=' ')

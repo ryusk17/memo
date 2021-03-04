@@ -1,0 +1,77 @@
+<?php
+namespace App\Model\Table\ToshinGoukakuTaikenki;
+
+use Cake\ORM\Table;
+use SoftDelete\Model\Table\SoftDeleteTrait;
+
+/**
+ * Areasテーブル
+ */
+class AreasTable extends Table
+{
+    use SoftDeleteTrait;
+
+    /**
+     * Initializeメソッド
+     *
+     * @param array $config テーブル構成
+     * @return void
+     */
+    public function initialize(array $config)
+    {
+        parent::initialize($config);
+
+        $this->setTable('areas');
+        $this->setDisplayField('id');
+        $this->setPrimaryKey('id');
+
+        $this->setEntityClass('App\Model\Entity\ToshinGoukakuTaikenki\Area');
+
+        $this->addBehavior('AttachSqlComment');
+        $this->addBehavior('PrepareOrder');
+        $this->addBehavior('Timestamp');
+
+        $this->hasMany('Prefs', [
+            'foreignKey' => 'area_id',
+        ]);
+    }
+
+    /**
+     * データベース接続
+     *
+     * @return string
+     */
+    public static function defaultConnectionName()
+    {
+        return 'toshin_goukaku_taikenki';
+    }
+
+    public function findAreaUnivList($minimumUnivDisplayOrder)
+    {
+        return $this->find()
+            ->select([
+                'Areas.area',
+                'UnivOrders.name',
+            ])
+            ->join([
+                'Prefs' => [
+                    'table' => 'toshin_goukaku_taikenki.prefs',
+                    'type' => 'LEFT',
+                    'conditions' => 'Areas.id = Prefs.area_id',
+                ],
+                'UnivOrders' => [
+                    'table' => 'toshin_goukaku_taikenki.univ_orders',
+                    'type' => 'LEFT',
+                    'conditions' => 'Prefs.id = UnivOrders.pref_id',
+                ],
+            ])
+            ->where(['UnivOrders.display_order >' => $minimumUnivDisplayOrder])
+            ->order([
+                'Areas.id' => 'ASC',
+                'UnivOrders.display_order' => 'DESC',
+            ])
+            ->enableHydration(false)
+            ->toArray()
+
+    }
+}

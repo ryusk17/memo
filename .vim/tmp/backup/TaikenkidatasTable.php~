@@ -1,0 +1,189 @@
+<?php
+
+namespace App\Model\Table\ToshinGoukakuTaikenki;
+
+use Cake\ORM\Table;
+use SoftDelete\Model\Table\SoftDeleteTrait;
+use Cake\Core\Configure;
+
+/**
+ * Taikenkidatas モデル
+ */
+class TaikenkidatasTable extends Table
+{
+    use SoftDeleteTrait;
+
+    /**
+     * Initializeメソッド
+     *
+     * @param array $config テーブル構成
+     * @return void
+     */
+    public function initialize(array $config)
+    {
+        parent::initialize($config);
+
+        $this->setTable('taikenkidatas');
+        $this->setDisplayField('title');
+        $this->setPrimaryKey('id');
+
+        $this->setEntityClass('App\Model\Entity\ToshinGoukakuTaikenki\Taikenkidata');
+
+        $this->addBehavior('Timestamp');
+        $this->addBehavior('PrepareOrder');
+        $this->addBehavior('AttachSqlComment');
+
+        $this->hasOne('StudentsImages')
+            ->setForeignKey([
+                'taikenkidata_seito_no',
+                'name',
+            ])
+            ->setBindingKey([
+                'seito_no',
+                'seito_name',
+            ]);
+
+        $this->hasMany('TaikenkiVotes', [
+            'foreignKey' => 'taikenki_id',
+            'joinType' => 'INNER',
+        ]);
+
+        $this->belongsTo('UnivOrders')
+            ->setForeignKey([
+                'seito_nyugaku',
+            ])
+            ->setBindingKey([
+                'name',
+            ]);
+    }
+
+    /**
+     * デフォルトのDB接続名取得
+     *
+     * @return string
+     */
+    public static function defaultConnectionName()
+    {
+        return 'toshin_goukaku_taikenki';
+    }
+
+    public function successfulCount($year)
+    {
+        $ret = $this->find()
+            ->select(
+                ['count' => $this->find()->func()->count('*')]
+            )
+            ->where(
+                [
+                    'Taikenkidatas.visible_flag' => Configure::read('VALID'),
+                    'Taikenkidatas.year' => $year,
+                ]
+            )
+            ->first()
+            ->toArray()
+            ;
+        return $ret['count'];
+    }
+
+    public function findTaikenkidatasForIndex($year)
+    {
+        $query = $this->find()
+            ->join([
+                // 大学リスト：入学する大学
+                'UnivOrders' => [
+                    'table' => 'toshin_goukaku_taikenki.univ_orders',
+                    'type' => 'LEFT',
+                    'conditions' => 'Taikenkidatas.seito_nyugaku = UnivOrders.name',
+                ],
+                // 生徒画像データ
+                'StudentsImages' => [
+                    'table' => 'toshin_goukaku_taikenki.students_images',
+                    'type' => 'LEFT',
+                    'conditions' => 'StudentsImages.taikenkidata_seito_no = Taikenkidatas.seito_no',
+                ],
+            ]);
+
+        $query
+            ->select([
+                'Taikenkidatas.id',
+                'Taikenkidatas.seito_name',
+                'Taikenkidatas.sex',
+                'Taikenkidatas.seito_kousha_type',
+                'Taikenkidatas.seito_kousha',
+                'Taikenkidatas.seito_hs',
+                'Taikenkidatas.seito_nyugaku',
+                'Taikenkidatas.seito_nyugaku_dept',
+                'Taikenkidatas.title',
+                'StudentsImages.photo',
+            ])
+            ->where([
+                'Taikenkidatas.visible_flag' => Configure::read('VALID'),
+                'Taikenkidatas.year' => $year,
+                'UnivOrders.display_order >' => self::MINIMUM_UNIV_DISPLAY_ORDER,
+            ]);
+
+        if (!empty($this->request->getQuery('univs'))) {
+            // 検索大学
+            $univs = $this->request->getQuery('univs');
+            $query = $query->where(['Taikenkidatas.seito_nyugaku IN' => $univs]);
+        }
+
+        if (!empty($this->request->getQuery('keyword'))) {
+            // 検索キーワード
+            $keywords = $this->request->getQuery('keyword');
+            $keywords = preg_split('/[\p{C}\p{Z}]++/u', $keywords);
+            $keywords = array_unique($keywords);
+
+            // 検索キーワード対象カラムをconcatする
+            $concat = $query->func()->concat([
+                'IFNULL(Taikenkidatas.seito_name,"")' => 'identifier',
+                'IFNULL(Taikenkidatas.title,"")' => 'identifier',
+                'IFNULL(Taikenkidatas.body,"")' => 'identifier',
+                'IFNULL(Taikenkidatas.seito_hs,"")' => 'identifier',
+                'IFNULL(Taikenkidatas.seito_nyugaku,"")' => 'identifier',
+                'IFNULL(Taikenkidatas.seito_nyugaku_dept,"")' => 'identifier',
+                'IFNULL(Taikenkidatas.seito_kousha,"")' => 'identifier',
+            ]);
+
+            foreach ($keywords as $keyword) {
+                $query = $query->where(function ($exp) use ($concat, $keyword) {
+                    return $exp->like($concat, '%' . $keyword . '%');
+                });
+            }
+        }
+
+        $taikenkidatas = $query
+            ->order([
+                'UnivOrders.display_order' => 'DESC',
+            ])
+            ->toArray();
+
+        // 表示する大学名を配列に追加
+        $selectUnivs = [];
+        $selectUnivs = array_column($taikenkidatas, 'seito_nyugaku');
+        $selectUnivs = array_unique($selectUnivs);
+
+        $data = [];
+        foreach ($taikenkidatas as $taikenkidata) {
+            // 大学名をキーに持つ配列を生成
+            if (in_array($taikenkidata['seito_nyugaku'], $selectUnivs, true)) {
+                // いいね数追加
+                $taikenkidata['countVotes'] = $this->countVotesById($taikenkidata['id']);
+                $data[$taikenkidata['seito_nyugaku']][] = $taikenkidata;
+            }
+        }
+
+        return $this->getJsonResponse($data);
+    }
+
+    public function countVotesById($id)
+    {
+        $countVotes = $this->TaikenkiVotes->find()
+            ->select(['id'])
+            ->where(['taikenki_id' => $id])
+            ->count();
+
+        return $countVotes;
+    }
+
+}

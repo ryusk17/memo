@@ -1,0 +1,76 @@
+<template>
+  <CSidebar fixed :minimize="minimize" :show.sync="show" class="medorder-sidebar">
+    <CSidebarBrand class="d-md-down-none" to="/">
+      <div v-if="!minimize" class="text-value-lg">メドオーダー</div>
+      <CImg v-else src="/img/mini-logo.png" height="40" />
+    </CSidebarBrand>
+    <CSidebarNav>
+      <CSidebarNavTitle>発注</CSidebarNavTitle>
+      <SidebarNavItem icon="cil-basket" name="発注" :to="{ name: 'order', params: { pharmacyId: pharmacyId } }" />
+      <SidebarNavItem icon="cil-history" name="発注履歴" :to="{ name: 'order-history', params: { pharmacyId: pharmacyId } }" />
+      <SidebarNavItem icon="cil-delivery" name="納品" :to="{ name: 'deliveries', params: { pharmacyId: pharmacyId } }" />
+
+      <CSidebarNavTitle>在庫</CSidebarNavTitle>
+      <SidebarNavItem icon="cil-storage" name="在庫" :to="{ name: 'stocks', params: { pharmacyId: pharmacyId } }" />
+      <SidebarNavItem icon="cil-inbox" name="棚卸" :to="{ name: 'stocktakings', params: { pharmacyId: pharmacyId } }" />
+      <SidebarNavItem icon="cil-layers" name="採用薬" :to="{ name: 'regular-items', params: { pharmacyId: pharmacyId } }" />
+      <SidebarNavItem icon="cil-car-alt" name="取引卸" :to="{ name: 'dealers', params: { pharmacyId: pharmacyId } }" />
+      <SidebarNavItem icon="cil-user" name="患者" :to="{ name: 'patients', params: { pharmacyId: pharmacyId } }" />
+
+      <CSidebarNavTitle>設定</CSidebarNavTitle>
+      <SidebarNavItem icon="cil-settings" name="設定" :to="{ name: 'config', params: { pharmacyId: pharmacyId } }" />
+    </CSidebarNav>
+    <CSidebarMinimizer class="d-md-down-none" @click.native="minimize = !minimize" />
+  </CSidebar>
+</template>
+
+<style scoped>
+.medorder-sidebar {
+  /* 他の fixed よりも手前に表示させるため、"$zindex-fixed: 1030 !default;" より1つ大きな値をセットする */
+  z-index: 1031;
+}
+</style>
+
+<script>
+import { defineComponent, ref, computed } from "@vue/composition-api";
+
+import { useSelectingPharmacyStore } from "@/store/selectingPharmacyStore";
+
+import SidebarNavItem from "@/components/shared/SidebarNavItem.vue";
+
+export default defineComponent({
+  name: "TheSidebar",
+  components: {
+    SidebarNavItem,
+  },
+  setup(props, context) {
+    const selectingPharmacyStore = useSelectingPharmacyStore();
+
+    // 表示非表示
+    const minimize = ref(false);
+    const show = ref("responsive");
+
+    context.root.$on("toggle-sidebar", () => {
+      const sidebarOpened = show.value === true || show.value === "responsive";
+      show.value = sidebarOpened ? false : "responsive";
+    });
+    context.root.$on("toggle-sidebar-mobile", () => {
+      const sidebarClosed = show.value === "responsive" || show.value === false;
+      show.value = sidebarClosed ? true : "responsive";
+    });
+
+    const pharmacyId = computed(() => {
+      if (!selectingPharmacyStore.selectingPharamcy.value) {
+        return 0;
+      }
+      return String(selectingPharmacyStore.selectingPharamcy.value.id);
+    });
+
+    return {
+      minimize,
+      show,
+      pharmacyId,
+    };
+  },
+});
+</script>

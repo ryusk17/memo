@@ -1,0 +1,13 @@
+        base = 0
+expect(update_order.gtin_string[(128 + base)]).to eq 'D'
+expect(update_order.gtin_string[(129 + base)..(130 + base)]).to eq '15'
+expect(update_order.gtin_string[(131 + base)..(140 + base)]).to eq pharmacy.micode
+expect(update_order.gtin_string[(141 + base)..(146 + base)]).to eq now.strftime('%y%m%d')
+expect(update_order.gtin_string[(147 + base)]).to eq '1'
+expect(update_order.gtin_string[(148 + base)..(161 + base)]).to eq order_sdcvan_d_record[0].code
+expect(update_order.gtin_string[(162 + base)..(201 + base)]).to eq order_sdcvan_d_record[0].name
+expect(update_order.gtin_string[(202 + base)..(206 + base)]).to eq order_sdcvan_d_record[0].quantity
+expect(update_order.gtin_string[(207 + base)..(212 + base)]).to eq order_sdcvan_d_record[0].delivery_date
+expect(update_order.gtin_string[(213 + base)..(214 + base)]).to eq order_sdcvan_d_record[0].delivery_place
+expect(update_order.gtin_string[(215 + base)..(224 + base)]).to eq order_sdcvan_d_record[0].order_sdcvan_s_record.order_no
+expect(update_order.gtin_string[(225 + base)..(255 + base)]).to eq ''.ljust(31)

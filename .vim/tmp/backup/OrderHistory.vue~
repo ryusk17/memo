@@ -1,0 +1,84 @@
+<template>
+  <div class="stock">
+    <CAlert v-if="!loadingOrders && orders.length === 0" color="warning">発注履歴は見つかりませんでした</CAlert>
+    <CCard v-else>
+      <CCardBody class="p-0">
+        <CContainer fluid class="list-item-border">
+          <OrderHistoryListItem v-for="order in orders" :key="order.id" :order="order" />
+        </CContainer>
+        <Loading v-if="loadingOrders" />
+      </CCardBody>
+    </CCard>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, watch, ref } from "@vue/composition-api";
+
+import { useRoutePharmacyId } from "@/utils/routePharmacyId";
+import { useOrdersStore } from "@/store/ordersStore";
+import { usePharmacyDealersStore } from "@/store/pharmacyDealersStore";
+
+import { DateTime } from "luxon";
+<<<<<<< HEAD
+import { useHeaderSelectDealerFilter, useHeaderSelectDateFromToFilter, useHeaderSelectStockableItem } from "@/containers/TheHeader.vue";
+=======
+import { useHeaderSelectDealerFilter, useHeaderSelectDateRangeFilter } from "@/containers/TheHeader.vue";
+>>>>>>> c04b6ca25a3c3517f5ae42ac2913dcc074a72ea1
+import Loading from "@/components/shared/Loading.vue";
+import OrderHistoryListItem from "@/components/orderHistory/OrderHistoryListItem.vue";
+
+export default defineComponent({
+  name: "OrderHistory",
+  components: {
+    Loading,
+    OrderHistoryListItem,
+  },
+  setup() {
+    const pharmacyId = useRoutePharmacyId();
+    const orderStore = useOrdersStore();
+    const pharmacyDealersStore = usePharmacyDealersStore();
+    const dealerId = ref<number>(0);
+    const stockableItemId = ref<number>(0);
+    const dateFrom = ref<DateTime>(null);
+    const dateTo = ref<DateTime>(null);
+
+    async function fetchOrders() {
+      await orderStore.findList({
+        pharmacyId: pharmacyId.value,
+        dealerId: dealerId.value,
+        stockableItemId: stockableItemId.value,
+        dateFrom: dateFrom.value,
+        dateTo: dateTo.value,
+      });
+    }
+
+    useHeaderSelectDateRangeFilter((dateRange) => {
+      dateFrom.value = dateRange.from;
+      dateTo.value = dateRange.to;
+      fetchOrders();
+    });
+
+    useHeaderSelectDealerFilter((newDealerId) => {
+      dealerId.value = newDealerId;
+      fetchOrders();
+    });
+
+    useHeaderSelectStockableItem((stockableItem) => {
+      stockableItemId.value = stockableItem ? stockableItem.id : 0;
+      fetchOrders();
+    });
+
+    watch(pharmacyId, async (newPharmacyId) => {
+      pharmacyDealersStore.fetch(newPharmacyId);
+      fetchOrders();
+    });
+
+    return {
+      pharmacyId,
+      orders: orderStore.list,
+      loadingOrders: orderStore.isFindingList,
+    };
+  },
+});
+</script>

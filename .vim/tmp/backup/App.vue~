@@ -1,0 +1,113 @@
+<template>
+  <router-view />
+</template>
+
+<style lang="scss">
+@import "~@coreui/coreui/scss/coreui";
+
+.list-item-border > div:not(:last-child) {
+  border-bottom: 1px solid #d8dbe0;
+}
+
+.thead-lite th {
+  font-weight: normal;
+  font-size: 0.9em;
+}
+
+.badge-drop {
+  color: #fff;
+  background-color: rgb(111, 66, 193);
+}
+
+.btn-ghost-drop {
+  color: rgb(111, 66, 193);
+  background-color: transparent;
+  background-image: none;
+  border-color: transparent;
+}
+.btn-ghost-drop:not(:disabled):not(.disabled).active {
+  color: #fff;
+  background-color: rgb(111, 66, 193);
+  border-color: rgb(111, 66, 193);
+}
+.btn-ghost-drop:hover {
+  color: #fff;
+  background-color: rgb(111, 66, 193);
+  border-color: rgb(111, 66, 193);
+}
+.btn-ghost-drop:disabled {
+  color: rgb(111, 66, 193);
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.icon-clickable {
+  color: rgba(0, 0, 21, 0.5);
+}
+
+.icon-clickable:hover {
+  color: rgba(0, 0, 21, 0.7);
+  cursor: pointer;
+}
+</style>
+
+<script lang="ts">
+import { defineComponent } from "@vue/composition-api";
+
+import "@coreui/coreui";
+
+import { provideDealersStore } from "@/store/dealersStore";
+
+import { providePharmaciesStore } from "@/store/pharmaciesStore";
+import { providePharmacyDealersStore } from "@/store/pharmacyDealersStore";
+import { providePatientsStore } from "@/store/patientsStore";
+
+import { provideStockableItemsStore } from "@/store/stockableItemsStore";
+
+import { provideStocksStore } from "@/store/stocksStore";
+import { provideStockLogsStore } from "@/store/stockLogsStore";
+import { provideStockMonthliesStore } from "@/store/stockMonthliesStore";
+import { provideStocktakingsStore } from "@/store/stocktakingsStore";
+import { provideStocktakingItemsStore } from "@/store/stocktakingItemsStore";
+import { provideOrderCandidatesStore } from "@/store/orderCandidatesStore";
+import { provideOrdersStore } from "@/store/ordersStore";
+import { provideRegularItemsStore } from "@/store/regularItemsStore";
+import { providePharmacyOrderSystemsStore } from "@/store/pharmacyOrderSystemsStore";
+import { provideSdcvanDeliveriesStore } from "@/store/sdcvanDeliveriesStore";
+
+import { provideSelectingPharmacyStore } from "@/store/selectingPharmacyStore";
+
+export default defineComponent({
+  name: "App",
+  setup(props, context) {
+    // core master
+    provideDealersStore(context);
+
+    // core pharmacy
+    providePharmaciesStore(context);
+    providePharmacyDealersStore(context);
+    providePatientsStore(context);
+
+    // medorder master
+    provideStockableItemsStore(context);
+
+    // medorder pharmacy
+    provideStocksStore(context);
+    provideStockLogsStore(context);
+    provideStockMonthliesStore(context);
+    provideStocktakingsStore(context);
+    provideStocktakingItemsStore(context);
+    provideOrdersStore(context);
+    provideRegularItemsStore(context);
+    providePharmacyOrderSystemsStore(context);
+<<<<<<< HEAD
+    provideSdcvanDeliveriesStore(context);
+=======
+    provideOrderCandidatesStore(context);
+>>>>>>> 80540d3daf8505bc2174167e42e0a9921abc6304
+
+    // app data
+    provideSelectingPharmacyStore(context);
+  },
+});
+</script>

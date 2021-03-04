@@ -1,0 +1,101 @@
+<template>
+  <CModal id="stockLogEditModal" size="lg" title="在庫編集" :show.sync="isShow">
+    <StockLogForm v-bind.sync="formData" :is-edit="true" />
+    <template #footer>
+      <CButton color="success" @click="submit">編集する</CButton>
+    </template>
+  </CModal>
+</template>
+
+<script lang="ts">
+import Vue from "vue";
+import { defineComponent, ref, reactive } from "@vue/composition-api";
+
+import { StockLog, useStockLogsStore, StockLogAction } from "@/store/stockLogsStore";
+import StockLogFormVue, { StockLogForm } from "@/components/stock/StockLogForm.vue";
+import { toastr } from "@/components/shared/Toastr.vue";
+import { DateTime } from "luxon";
+
+const showEvent = new Vue();
+export function showStockLogEditModal(stockableItemId: number, stockLog: StockLog) {
+  showEvent.$emit("show", stockableItemId, stockLog);
+}
+
+interface Props {
+  pharmacyId: number;
+}
+
+export default defineComponent({
+  name: "StockLogEditModal",
+  components: {
+    StockLogForm: StockLogFormVue,
+  },
+  props: {
+    pharmacyId: {
+      type: Number,
+    },
+  },
+  setup(props: Props) {
+    let stockLogId = 0;
+    const stockLogsStore = useStockLogsStore();
+
+    const formData = reactive<StockLogForm>({
+      action: StockLogAction.Subdivision,
+      loggedAt: DateTime.local(),
+      stockableItemId: null,
+      quantity: null,
+      expiresOn: null,
+      lot: null,
+      price: null,
+      pharmacyName: null,
+    });
+
+    function formDataCompletion(formData: StockLogForm, stockableItemId: number, stockLog: StockLog) {
+      // if (formData.stockableItemId) {
+      //  return;
+      // }
+      formData.stockableItemId = stockableItemId;
+      formData.quantity = stockLog.deltaQuantity;
+      formData.loggedAt = stockLog.loggedAt;
+      formData.expiresOn = stockLog.options.expiresOn;
+      formData.lot = stockLog.options.lot;
+      formData.price = stockLog.options.price;
+      formData.pharmacyName = stockLog.options.pharmacyName;
+    }
+
+    // 表示の管理
+    const isShow = ref(false);
+    showEvent.$on("show", (stockableItemId: number, stockLog: StockLog) => {
+      formDataCompletion(formData, stockableItemId, stockLog);
+      stockLogId = stockLog.id;
+      isShow.value = true;
+    });
+
+    // 追加処理
+    async function submit() {
+      if (!stockLogId || !formData.stockableItemId || !formData.quantity) {
+        return;
+      }
+      await stockLogsStore.patch({
+        id: stockLogId,
+        pharmacyId: props.pharmacyId,
+        stockableItemId: formData.stockableItemId,
+        deltaQuantity: formData.quantity,
+        loggedAt: formData.loggedAt,
+        expiresOn: formData.expiresOn,
+        lot: formData.lot,
+        price: formData.price,
+        pharmacyName: formData.pharmacyName,
+      });
+      isShow.value = false;
+      toastr.success("在庫を編集しました");
+    }
+
+    return {
+      isShow,
+      formData,
+      submit,
+    };
+  },
+});
+</script>

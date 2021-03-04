@@ -1,0 +1,59 @@
+USE yotsuyaotsuka_toitsutest_shogaku;
+
+SET SESSION FOREIGN_KEY_CHECKS=0;
+
+/* Drop Indexes */
+
+DROP INDEX IF EXISTS deleted ON student_login_informations;
+DROP INDEX IF EXISTS deleted ON student_numbers;
+
+
+
+/* Drop Tables */
+
+DROP TABLE IF EXISTS student_login_informations;
+DROP TABLE IF EXISTS student_numbers;
+
+
+
+
+/* Create Tables */
+
+-- ログイン情報
+CREATE TABLE student_login_informations
+(
+	id int(11) NOT NULL AUTO_INCREMENT COMMENT 'id',
+	student_number varchar(32) NOT NULL COMMENT '受験番号',
+	grade varchar(16) NOT NULL COMMENT '学年',
+	device varchar(16) NOT NULL COMMENT 'デバイス',
+	ip_address varchar(32) NOT NULL COMMENT 'IPアドレス',
+	user_agent varchar(255) NOT NULL COMMENT 'ブラウザ名',
+	date date COMMENT '日付',
+	time time COMMENT '時間',
+	created datetime NOT NULL COMMENT '作成日時',
+	modified datetime NOT NULL COMMENT '更新日時',
+	deleted datetime COMMENT '削除日時',
+	PRIMARY KEY (id)
+) ENGINE = InnoDB COMMENT = 'ログイン情報' DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+
+-- 受験番号
+CREATE TABLE student_numbers
+(
+	id int(11) NOT NULL AUTO_INCREMENT COMMENT 'id',
+	student_number varchar(20) NOT NULL COMMENT '受験番号',
+	grade varchar(10) NOT NULL COMMENT '学年',
+	created datetime NOT NULL COMMENT '作成日時',
+	modified datetime NOT NULL COMMENT '更新日時',
+	deleted datetime COMMENT '削除日時',
+	PRIMARY KEY (id)
+) ENGINE = InnoDB COMMENT = '受験番号' DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+
+
+/* Create Indexes */
+
+CREATE INDEX deleted ON student_login_informations ();
+CREATE INDEX deleted ON student_numbers ();
+
+
+SET SESSION FOREIGN_KEY_CHECKS=1;

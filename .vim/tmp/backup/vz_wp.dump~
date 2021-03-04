@@ -1,0 +1,50 @@
+-- MySQL dump 10.13  Distrib 8.0.21, for Linux (x86_64)
+--
+-- Host: new-server-test.cocmpthvt1vi.ap-northeast-1.rds.amazonaws.com    Database: vz_wp
+-- ------------------------------------------------------
+-- Server version	5.7.26-log
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+SET @MYSQLDUMP_TEMP_LOG_BIN = @@SESSION.SQL_LOG_BIN;
+
+--
+-- GTID state at the beginning of the backup 
+--
+
+SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ '';
+
+--
+-- Table structure for table `wp_commentmeta`
+--
+
+DROP TABLE IF EXISTS `wp_commentmeta`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `wp_commentmeta` (
+  `meta_id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `comment_id` bigint(20) unsigned NOT NULL DEFAULT '0',
+  `meta_key` varchar(255) COLLATE utf8mb4_unicode_520_ci DEFAULT NULL,
+  `meta_value` longtext COLLATE utf8mb4_unicode_520_ci,
+  PRIMARY KEY (`meta_id`),
+  KEY `comment_id` (`comment_id`),
+  KEY `meta_key` (`meta_key`(191))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `wp_commentmeta`
+--
+
+LOCK TABLES `wp_commentmeta` WRITE;
+/*!40000 ALTER TABLE `wp_commentmeta` DISABLE KEYS */;
+/*!40000 ALTER TABLE `wp_commentmeta` ENABLE KEYS */;
+UNLOCK TABLES;

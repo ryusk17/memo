@@ -1,0 +1,34 @@
+<?php
+
+return [
+    // グローバル ヘッダー・フッターURL
+    'COMMON_URL' => [
+        'PC' => [
+            'HEADER' => 'https://www.toshin.com/IncUnit/global-header.php',
+            'FOOTER' => 'https://www.toshin.com/IncUnit/Footer.php',
+        ],
+        'SP' => [
+            'HEADER' => 'https://www.toshin.com/sp/IncUnit/global-header-sp.php',
+            'FOOTER' => 'https://www.toshin.com/sp/IncUnit/Footer.php',
+        ],
+    ],
+    // 同時アクセス数
+    'API_CONNECT_LIMIT' => 5,
+    // リトライ数
+    'API_CONNECT_RETRY_LIMIT' => 2,
+    // タイムアウト
+    'API_CONNECT_TIMEOUT' => 60,
+    // ヘッダやフッタのHTMLキャッシュ時間（秒）
+    'HTML_CACHE_TIME' => 86400,
+
+    'INVALID' => 0,
+    'VALID' => 1,
+
+    'POSTING_COUNT_MIN' => 100,
+
+    //hidden_flag用
+    'SHOW' => 0,
+    'HIDDEN' => 1,
+
+    'OFTEN_CHECKED' => 1,
+];

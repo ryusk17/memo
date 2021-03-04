@@ -1,0 +1,17 @@
+snippet add
+	ALTER TABLE ${1} ADD COLUMN ${2} NOT NULL ${3} DEFAULT ${4};
+
+snippet insert
+	INNER JOIN ${1} ON ${2};
+
+snippet     in
+options     word
+	int(${0})
+
+snippet     v
+options     word
+	varchar(${0})
+
+snippet     nn
+options     word
+	NOT NULL

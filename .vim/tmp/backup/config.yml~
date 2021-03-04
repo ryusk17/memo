@@ -1,0 +1,84 @@
+version: 2.1
+jobs:
+  test_api:
+    docker:
+      - image: circleci/ruby:2.6.5
+        environment:
+          - TZ: Asia/Tokyo
+      - image: circleci/mysql:5.7
+        environment:
+          - MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          - MYSQL_ROOT_PASSWORD: ''
+          - TZ: Asia/Tokyo
+    steps:
+      - checkout
+      - run: bundle config --global jobs 4
+      - restore_cache:
+          key: medorder-api-{{ .Branch }}-{{ checksum "api/Gemfile" }}-{{ checksum "api/Gemfile.lock" }}
+      - run:
+          name: Railsライブラリインストール（bundle install）
+          command: cd api && bundle install --path vendor/bundle --jobs=4 --clean
+      - run: ls -la api/vendor/bundle/ruby/
+      - save_cache:
+          key: medorder-api-{{ .Branch }}-{{ checksum "api/Gemfile" }}-{{ checksum "api/Gemfile.lock" }}
+          paths:
+            - "api/vendor/bundle"
+      - run:
+          name: 環境変数を `Docker/dev.env` から設定（TODO:circleci用のenvファイルを作りたい）
+          command: |
+            cat Docker/dev.env | grep -v ^# | xargs -IXXXX echo 'export XXXX' >> $BASH_ENV
+            echo 'export DATABASE_HOST=127.0.0.1' >> $BASH_ENV
+            #echo 'export DATABASE_HOST_CORE=127.0.0.1' >> $BASH_ENV
+      - run:
+          name: データベースの起動待ち
+          command: dockerize -wait tcp://127.0.0.1:3306 -timeout 1m
+      - run:
+          name: Set up core database
+          command: |
+              sudo apt-get update
+              sudo apt-get install default-mysql-client
+              mysql -u root -e "CREATE DATABASE IF NOT EXISTS pharmacloud_core_api_test" --protocol=tcp
+      - run:
+          name: データベース作成
+          command: cd api && bundle exec rake db:migrate:reset
+      - run:
+          name: RSpec実行
+          command: cd api && bundle exec rspec
+      - run:
+          name: Rubocop実行
+          command: cd api && bundle exec rubocop
+
+  test_pharmacy_app:
+    docker:
+      - image: circleci/node:12.14.1-browsers
+    steps:
+      - checkout
+      - restore_cache:
+          key: medorder-pharmacy-app-{{ .Branch }}-{{ checksum "pharmacy-app/yarn.lock" }}
+      - run:
+          name: npmライブラリ更新（yarn install）
+          command: cd pharmacy-app && yarn install --no-optional
+      - save_cache:
+          key: medorder-pharmacy-app-{{ .Branch }}-{{ checksum "pharmacy-app/yarn.lock" }}
+          paths:
+            - "pharmacy-app/node_modules"
+      - run:
+          name: 環境変数を `Docker/dev.env` から設定（TODO:circleci用のenvファイルを作りたい）
+          command: |
+            cat Docker/dev.env | grep -v ^# | xargs -IXXXX echo 'export XXXX' >> $BASH_ENV
+      - run:
+          name: Lint実行
+          command: cd pharmacy-app && yarn lint:ci
+      - run:
+          name: 単体テスト実行
+          command: cd pharmacy-app && yarn test:unit
+      # - run:
+      #     name: e2eテスト実行
+      #     command: cd pharmacy-app && yarn test:e2e
+
+workflows:
+  version: 2
+  tests:
+    jobs:
+      - test_api
+      - test_pharmacy_app

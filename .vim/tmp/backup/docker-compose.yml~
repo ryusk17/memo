@@ -1,0 +1,64 @@
+version: "3.4"
+
+services:
+  web:
+    build:
+      context: ./web/
+      dockerfile: Dockerfile
+      args:
+        ENV: development
+    restart: always
+    volumes:
+      - ./docker/php.ini:/usr/local/etc/php/php.ini
+      - ./web:/var/www/html/
+    ports:
+      - 38080:80
+    depends_on:
+      - mysql
+      - mail
+
+  mysql:
+    image: mysql:8.0.18
+    restart: always
+    ports:
+      - 33306:3306
+    command:
+      - --sql-mode=NO_ENGINE_SUBSTITUTION
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    env_file:
+      - ./docker/dev.env
+    environment:
+      - BIND-ADDRESS=0.0.0.0
+      - TZ=Asia/Tokyo
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    env_file:
+      - ./docker/dev.env
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=mysql
+#       - PMA_USER=${DB_USERNAME}
+#       - PMA_PASSWORD=${DB_PASSWORD}
+    links:
+      - mysql
+    ports:
+      - 38081:80
+    volumes:
+      - phpmyadmin-session:/sessions
+
+  mail:
+    image: mailhog/mailhog
+    restart: always
+    ports:
+      - "38025:8025"
+
+volumes:
+  mysql-data:
+    driver: local
+  phpmyadmin-session:
+    driver: local

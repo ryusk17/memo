@@ -1,0 +1,751 @@
+#!/usr/bin/python3
+# coding=utf8
+
+from watchdog.observers import Observer
+from logging.handlers import TimedRotatingFileHandler
+import sys
+import os
+import time
+import datetime
+import shutil
+import subprocess
+import csv
+import logging
+import FileEventHandler
+import zipfile
+import psycopg2
+import subprocess
+import asyncio
+import json
+import requests
+import traceback
+import chardet
+import ConstClass as const
+import re
+from retry import retry
+from ErrorCodeClass import ErrorCode
+from pyzbar.pyzbar import decode, ZBarSymbol
+from PIL import Image
+from dateutil.relativedelta import relativedelta
+
+# ログフォーマットを定義
+formatter = const.LOG_FORMAT
+# ログ出力設定
+logging.basicConfig(handlers=[TimedRotatingFileHandler(const.LOG_DIR + 'analysis.log', when = 'D')],
+                    level=logging.INFO,
+                    format=formatter)
+
+
+# 画像解析処理
+def parallel_analysis():
+    # ZipFileEventHandlerクラスの連想配列をコピー(クラス側は常時更新が走るため)
+    copied_dic_modified_time = event_handler.dic_modified_time.copy()
+    for zip_file_path in copied_dic_modified_time.keys():
+        try:
+            # 2秒タイムスタンプが更新されなければ画像解析処理を実施
+            if (datetime.datetime.now() - event_handler.dic_modified_time[zip_file_path]).total_seconds() > 2:
+                logging.info(zip_file_path + ":画像解析を開始")
+
+                # zipファイル解凍処理
+                logging.info(zip_file_path + ":zipファイル解凍を開始")
+                # 解析処理対象ファイル名格納リスト
+                image_files = []
+                # zipファイルの解凍
+                with zipfile.ZipFile(zip_file_path) as z:
+                    for zip_file_contents in z.infolist():
+                        # 担当者コード名フォルダでzipファイル解凍
+                        z.extract(zip_file_contents, path=zip_file_path.split('_')[0] + '/' + zip_file_path.split("/")[-1].split(".")[0])
+                        image_files.append(zip_file_path.split('_')[0] + '/' + zip_file_path.split("/")[-1].split(".")[0] + '/' + zip_file_contents.filename)
+                # zipファイルパスから担当者コードを取得
+                person_code = zip_file_path.split('_')[0].split('/')[-1]
+                # zipファイルパスからzipファイル名を取得
+                zip_file_name = zip_file_path.split('/')[-1].split('.')[0]
+
+                # 並列させてORCコール,C++コール,csv生成を行う
+                # asyncio.get_event_loop()で並列処理用のイベントループを取得
+                loop = asyncio.get_event_loop()
+                # 並列処理実行
+                loop.run_until_complete(limited_parallel_call(person_code, zip_file_path, image_files, 4))
+
+                # 担当者コードから所属コードを取得
+                try:
+                    person_affiliation = fetch_person_info(person_code)[0]
+                except Exception as e:
+                    logging.error(e)
+                    logging.error('DBに存在しない担当者コード:' + person_code + 'のためエラー処理を開始')
+                    # エラーzipを出力
+                    logging.error('エラーzip出力処理が開始')
+                    # エラー発生zipファイルは処理対象から除く
+                    del event_handler.dic_modified_time[zip_file_path]
+                    continue
+
+                # zipする解析結果csvが格納されたディレクトリを取得
+                zip_target_dir = const.WORKING_TMP_DIR + person_code + '/' + zip_file_name
+                # 解析結果を格納するディレクトリを取得
+                YYYYMMDD = zip_file_path.split('_')[1]
+                HHMMSS = zip_file_path.split('_')[2]
+                zip_output_dir = const.ZIP_OUTPUT_DIR + person_affiliation + '/' + person_code + '/' + YYYYMMDD + '/' + HHMMSS
+                # 作成するzipファイル名前を定義
+                zip_file_name =  zip_file_path.split('/')[-1].rsplit('_', 1)[0]
+
+                # zipファイル出力
+                logging.info(zip_file_name + ":zipファイル出力を開始")
+                shutil.make_archive(zip_output_dir + '/' + zip_file_name, 'zip', root_dir=zip_target_dir)
+                logging.info(zip_file_name + ":zipファイル出力が完了")
+
+                # ZipFileEventHandlerクラスの連想配列からキーを指定して要素を削除
+                del event_handler.dic_modified_time[zip_file_path]
+        except Exception as e:
+            logging.error("予期しないエラーが発生しました。")
+            del event_handler.dic_modified_time[zip_file_path]
+            logging.error(e)
+            logging.error(e , stack_info=True)
+            logging.error(e , exc_info=True)
+
+# 制限数ありの並列処理を定義
+async def limited_parallel_call(person_code, zip_file_path, image_files, limit):
+    sem = asyncio.Semaphore(limit)
+
+    async def call(person_code, zip_file_path, image_file_path):
+        with await sem:
+            return await create_csv(person_code, zip_file_path, image_file_path)
+
+    return await asyncio.gather(*[call(person_code, zip_file_path, image_file_path) for image_file_path in image_files])
+
+# 並列的に動かしたい関数はasyncをつけて定義
+async def create_csv(person_code, zip_file_path, image_file_path):
+
+    class ImageFileInfoClass:
+        def __init__(self, person_code, zip_file_path, image_file_path):
+            self.person_code = person_code
+            self.zip_file_path = zip_file_path
+            self.image_file_path = image_file_path
+            self.barcode = image_file_path.split('_')[-2]
+
+        # バーコード値解析
+        # 取得情報
+        # 依頼書：依頼書コード、印刷パターンコード、顧客番号(医療機関コード)
+        # 受領日誌：所属コード、担当者コード、ページ数
+        def analyze_barcode_value(self):
+            if len(self.barcode) != 10:
+                logging.error("ファイル名のバーコード値が不正です " + barcode)
+            else:
+                logging.info("バーコード値は正常です")
+            # 検体受領日誌 or 検査依頼書を判別する
+            documents_pattern = self.barcode[0]
+            if documents_pattern == "+":
+                self.diary_document_flg = True
+                self.request_document_flg = False
+            else:
+                self.diary_document_flg = False
+                self.request_document_flg = True
+            # 書類によって返却する値を変更する
+            # 日誌の場合
+            if self.diary_document_flg:
+                self.affiliation_code = self.barcode[3:5]
+                self.person_code = self.barcode[5:8]
+                self.page_volumes = self.barcode[8:10]
+            # 依頼書の場合
+            if self.request_document_flg:
+                self.request_document_code = self.barcode[1:3]
+                self.print_pattern_code = self.barcode[3:5]
+                # 印刷パターンが「00」の場合、医療機関コードを「99999」として読み込む
+                if self.print_pattern_code == const.IRREGULAR_PRINT_PATTERN_CODE:
+                    self.hospital_code = const.IRREGULAR_HOSPITAL_CODE
+                else:
+                    self.hospital_code = self.barcode[5:10]
+
+        # 出力用csvレコードの初期化
+        # TODO　日誌の場合の初期化
+        def init_csv_record(self):
+            self.csv_records = []
+            # 日誌の場合
+            if self.diary_document_flg:
+                csv_record_1 = const.CSV_10_dict.copy()
+                csv_record_2 = const.CSV_11_dict.copy()
+            # 依頼書の場合
+            if self.request_document_flg:
+                csv_record_1 = const.CSV_20_dict.copy()
+                csv_record_2 = const.CSV_21_dict.copy()
+                YYYYMMDD = self.image_file_path.split('/')[-1].split('_')[0]
+                HHMMSS = self.image_file_path.split('/')[-1].split('_')[1]
+                update_dict = {"file_name_yyyymmdd":YYYYMMDD, "file_name_hhmmss":HHMMSS, "person_code":self.person_code, "hospital_code":self.hospital_code}
+                csv_record_1.update(update_dict)
+                csv_record_2.update(update_dict)
+            self.csv_records.append(csv_record_1)
+            self.csv_records.append(csv_record_2)
+
+        # AIinsideコール
+        def call_AIinside_OCR(self):
+            self.AIinside_OCR_result_dict = {}
+
+            # 作業日誌の場合
+            if self.diary_document_flg:
+                logging.info("作業日誌のAIinside_OCR : " + self.image_file_path)
+                # return api_call(headers, file_name, const.CSV10_DOCUMENTS_ID)
+            # 検査依頼書の場合
+            if self.request_document_flg:
+                logging.info("検査依頼書のAIinside_OCR : " + self.image_file_path)
+
+                # common_result_str = self.api_call(const.CSV20_DOCUMENTS_ID)
+                common_result_str = '''"requested_date","request_items_count","blood_pressure","whole_blood_count","serum_count","blood_sugar_count","end_blood_count","coagulation_count","urine_count","other_count","height_weight_24h"
+"年月日","4","生活習慣病","1","","1","1","1","","2","cmkgml"
+'''
+                # common_result_strを辞書に変換する
+                common_result_csv_list = []
+                # APIコール結果をcsv形式のリストへ変換する
+                for row in csv.reader(common_result_str.strip().splitlines()):
+                    common_result_csv_list.append(row)
+                # AIinside共通部分を辞書型に格納
+                for key, value in zip(common_result_csv_list[0], common_result_csv_list[1]):
+                    self.AIinside_OCR_result_dict[key] = value
+                logging.info("AIinside共通部分を辞書型を表示")
+                logging.info(self.AIinside_OCR_result_dict)
+                # QRcodeのデータを取得
+                qrcode_row_data = decode(Image.open(self.image_file_path), symbols=[ZBarSymbol.QRCODE])
+
+                # リストが空ならばQRcodeのデータが無いためapiコールする
+                if(len(qrcode_row_data) == 0):
+                    logging.info("qrcode_dataが存在しないため、QRコード部分のAPIコール実施")
+                    # qrcode_result_str = self.api_call(const.CSV20_QR_DOCUMENTS_ID)
+                    qrcode_result_str = '''"patient_id","patient_name","birthday_age","doctor_name_kana","collection_datetime","urine_volume","comment","detail_comment","matching_key","receipt_number"
+"2835427","タケイタイキ","24年6月3日8才","スズキ","20年4月30日8時30分","","","","8888","不正な受付番号"
+'''
+                    logging.info("qrcode部分APIコールのqrcode_result_str")
+                    logging.info(qrcode_result_str)
+                else:
+                    # qrcode_dataの必要情報を抽出してヘッダ情報を付与
+                    logging.info("qrcode_row_dataの情報を整形")
+                    qrcode_header = '"patient_id","patient_name","birthday_age","doctor_name_kana","collection_datetime","urine_volume","comment","detail_comment","matching_key","receipt_number"'
+                    list_qrcode_data = qrcode_row_data[0][0].decode('utf-8', 'ignore').split(",")
+                    qrlist = list_qrcode_data[0] + "," + list_qrcode_data[1] + "," + list_qrcode_data[4] + "," + list_qrcode_data[14] + "," + str(list_qrcode_data[6]+list_qrcode_data[7]) + "," + list_qrcode_data[10] + "," + list_qrcode_data[13] + "," +list_qrcode_data[15] + "," + list_qrcode_data[16] + "," + list_qrcode_data[17]
+                    qrcode_result_str = qrcode_header + '\n' + qrlist
+                    logging.info("qrcode_row_dataから整形したqrcode_result_str")
+                    logging.info(qrcode_result_str)
+                # AIinside結果とQRコード情報を結合
+                # csvっぽくする
+                qrcode_result_csv_list = []
+                for row in csv.reader(qrcode_result_str.strip().splitlines()):
+                    qrcode_result_csv_list.append(row)
+                # qrcode_result_strを辞書に変換する
+                for key, value in zip(qrcode_result_csv_list[0], qrcode_result_csv_list[1]):
+                    self.AIinside_OCR_result_dict[key] = value
+                logging.info("AIinside共通部分とQRコード情報をマージした辞書型を表示")
+                logging.info(self.AIinside_OCR_result_dict)
+
+        # APIコール 2回例外キャッチした場合、上位に例外を投げる
+        @retry(tries=2)
+        def api_call(self, documentid):
+            headers = {'X-ConsoleWeb-ApiKey': const.API_KEY}
+            # STEP1 ユニットの追加
+            unit_add_url = 'https://technocorpus.dx-suite.com/ConsoleWeb/api/v1/reading/pages/add'
+            image_file = open(self.image_file_path, 'rb')
+            post_data_dict = {'file': image_file , 'documentId': documentid}
+            unit_add_res = requests.post(unit_add_url, headers=headers, files=post_data_dict)
+            unitid = unit_add_res.json()["unitId"]
+
+            # STEP2 CSVデータの取得
+            # unit追加後すぐにcsvダウンロードの状態にならないため、一定時間をおいてリトライする
+            while True:
+                time.sleep(3)
+                download_csv_url = 'https://technocorpus.dx-suite.com/ConsoleWeb/api/v1/reading/units/' + str(unitid) + '/export'
+                logging.info("download_csv_url: " + download_csv_url)
+                download_csv_res = requests.get(download_csv_url, headers=headers)
+                # 読み取り中ではない場合(読み取り中の場合)
+                if download_csv_res.status_code != const.OCR_ERRORCODE_READ_NOT_COMPLETED:
+                    break
+                logging.warning("読み取り中のためcsvデータ取得をリトライ")
+            # Byte order markを除いて返却
+            return download_csv_res.text.encode('utf-8').decode('utf_8_sig')
+
+        # AIinsideの結果をcsvレコードへ追加する
+        def add_AIinside_OCR_result(self):
+            # 日誌の場合
+            if self.diary_document_flg:
+                # TODO 作業日誌のOCR結果マージ
+                logging.info("作業日誌のOCR結果マージはスキップ")
+            # 検査依頼書の場合
+            if self.request_document_flg:
+                # AIinsideOCR結果をそのままcsv出力できる項目をcsv_recordsに追加
+                add_key_lists = ["requested_date","request_items_count","blood_pressure","whole_blood_count","serum_count","blood_sugar_count","end_blood_count","coagulation_count","urine_count","other_count","patient_id","urine_volume","comment","detail_comment","matching_key","receipt_number"]
+                for key in add_key_lists:
+                    if  key in self.AIinside_OCR_result_dict:
+                        if self.AIinside_OCR_result_dict[key] == '':
+                            self.csv_records[0][key] = self.AIinside_OCR_result_dict[key]
+                # TODO 受付番号バリデーション　エラー処理へつなげる
+                # 個別に変換必要な項目を変換してcsv_recordsに追加する
+                # patient_name birthday_age doctor_name_kana collection_datetime height_weight_24h
+                self.csv_records[0]["doctor_name"] = self.AIinside_OCR_result_dict["doctor_name_kana"]
+
+                # patient_nameの変換処理
+                patient_name_list = self.AIinside_OCR_result_dict["patient_name"].split()
+                self.csv_records[0]["patient_name_sei"] = patient_name_list[0]
+                try:
+                    #空白パースできない場合はlist index out of rangeが発生する
+                    self.csv_records[0]["patient_name_mei"] = patient_name_list[1]
+                except IndexError as e:
+                    logging.warning("patient_nameの空白パースができないため、patient_name_meiを''でcsv出力")
+                    self.csv_records[0]["patient_name_mei"] = ''
+
+                # requested_dateの変換処理
+                requested_date_str = '20' + self.csv_records[0]["requested_date"]
+                try:
+                    requested_date_datetime = datetime.datetime.strptime(requested_date_str, '%Y年%m月%d日')
+                    self.csv_records[0]["requested_date"] = requested_date_datetime.strftime("%Y%m%d")
+                except ValueError as e:
+                    logging.warning("依頼日がフォーマット変換できないため''を入力")
+                    self.csv_records[0]["requested_date"] = ''
+                except Exception as e:
+                    logging.error("依頼日がフォーマット変換時に想定外のエラーが発生")
+                    logging.error(e , exc_info=True)
+                # requested_date_list = datetime.datetime.strptime(collection_datetime, '%Y年%m月%d日%H時%M分')
+                # 元号が無いと変換できないのでチェックボックス認識後に
+                self.csv_records[0]["birthday"] = self.AIinside_OCR_result_dict["birthday_age"]
+                self.csv_records[0]["age"] = self.AIinside_OCR_result_dict["birthday_age"]
+                # 採取日時の変換
+                collection_datetime_str = '20' + self.AIinside_OCR_result_dict["collection_datetime"]
+                # 入力形式が複数あるため例外キャッチ時は''をcsv出力
+                try:
+                    collection_datetime = datetime.datetime.strptime(collection_datetime_str, '%Y年%m月%d日%H時%M分')
+                    self.csv_records[0]["collection_yyyymmdd"] = collection_datetime.strftime("%Y%m%d")
+                    self.csv_records[0]["collection_hhmm"] = collection_datetime.strftime("%H%M")
+                except ValueError as e:
+                    logging.warning("採取日時がフォーマット変換できないため''を入力")
+                    self.csv_records[0]["collection_yyyymmdd"] = ''
+                    self.csv_records[0]["collection_hhmm"] = ''
+                except Exception as e:
+                    logging.error("採取日時の変換時に想定外のエラーが発生")
+                    logging.error(e , exc_info=True)
+
+                # 身長 体重 24Hの変換
+                height_weight_24h_list = re.split('cm|kg|ml', self.AIinside_OCR_result_dict["height_weight_24h"])
+                self.csv_records[0]["height"] = height_weight_24h_list[0]
+                self.csv_records[0]["weight"] = height_weight_24h_list[1]
+                self.csv_records[0]["24h"] = height_weight_24h_list[2]
+                # 画像ファイル名を依頼日、受付番号から生成する
+                self.csv_records[0]["image_file_name"] = str(self.csv_records[0]["requested_date"]) + str(self.csv_records[0]["receipt_number"]) + '.jpg'
+
+        # 依頼書のチェックボックス解析　2回例外キャッチした場合、上位に例外を投げる
+        @retry(tries=2)
+        async def recognition_request_document_checkbox(self):
+            self.res = None
+            loop = asyncio.get_event_loop()
+            # 作業日誌の場合
+            if self.diary_document_flg:
+                # 後続の処理をスキップ
+                logging.info("作業日誌のためチェックボックス解析処理はスキップ:")
+                # return None
+            # 依頼書の場合
+            if self.request_document_flg:
+                # 座標情報を取得
+                self.fetch_coordinate_info()
+                # C++コールのjson引数生成
+                self.create_sub_args_json()
+                args = [const.CHECKBOX_OCR_COMMAND_PATH, str(self.sub_args_json)]
+                logging.info(args)
+                # C++コール結果の標準出力を返却
+                self.res = await loop.run_in_executor(None, subprocess.check_output, args)
+
+        # 依頼書コードから座標を返却
+        def fetch_coordinate_info(self):
+            # postgreSQL接続
+            connection = psycopg2.connect(const.DB_CONNECT)
+
+            cursor = connection.cursor()
+            sql = 'SELECT group_code, print_count, x_position, y_position, width, height, vertical_move, horizontal_move FROM coordinate_master WHERE request_document_code = %(request_document_code)s;'
+            cursor.execute(sql, {'request_document_code':self.request_document_code})
+            self.coordinate_info = cursor.fetchall()
+
+            # カーソル切断
+            cursor.close()
+            # postgreSQL切断
+            connection.close()
+
+        # C++コール時のjson引数を返却する
+        def create_sub_args_json(self):
+            dict = {}
+            dict["document_key"] = self.request_document_code
+            # TODO 補正画像の指定
+            dict["img"] = {"target": self.image_file_path, "correction": const.CORRECTION_IMAGE_DIR + self.request_document_code + "_correction.jpg"}
+            coordinate_values = []
+            for coordinate_row in self.coordinate_info:
+                coordinate_values.append(coordinate_row)
+            dict["coordinate"] = coordinate_values
+            self.sub_args_json = json.dumps(dict)
+
+        ## csv出力項目を複数行にしてまとめたいから新たにリストを定義
+        def add_checkbox_recognition_result(self):
+            res_json = json.loads(image_info.res)
+            # 日誌の場合
+            if self.diary_document_flg:
+                return
+            # 検査依頼書の場合
+            if self.request_document_flg:
+                base_record = self.csv_records[1].copy()
+                # csv_20で出力する情報をcsv_21でも出力
+                base_record["requested_date"] = self.csv_records[0]["requested_date"]
+                base_record["receipt_number"] = self.csv_records[0]["receipt_number"]
+                for group_code in res_json["group_code"]:
+                    # csv_20 or csv_21の条件分岐
+                    if bool(re.match('20\d\d',group_code)):
+                        # csv_20に追記する内容
+                        # 性別の入力
+                        if group_code == '2001':
+                            isMALE, isFEMALE = False, False
+                            if res_json["group_code"][group_code][0] == 1:
+                                isMALE == True
+                            if res_json["group_code"][group_code][1] == 1:
+                                isFEMALE == True
+                            # チェック有無しを判定
+                            if isMALE ^ isFEMALE:
+                                if isMAN:
+                                    self.csv_records[0]["gender"] = 'M'
+                                else:
+                                    self.csv_records[0]["gender"] = 'F'
+                            else:
+                                # 両方true もしくは 両方falseの場合
+                                self.csv_records[0]["gender"] = 'U'
+                        # 元号の入力
+                        if group_code == '2002':
+                            for print_turn, detection_result in enumerate(res_json["group_code"][group_code]):
+                                if detection_result == 1:
+                                    self.csv_records[0]["era"] = const.CSV_20_ERA[print_turn]
+                            # 加算年数の定義
+                            taisyo = relativedelta(years=12)
+                            syowa = relativedelta(years=26)
+                            heisei = relativedelta(years=89)
+                            reiwa = relativedelta(years=120)
+                            try:
+                                birthday_age_datetime = datetime.datetime.strptime(self.csv_records[0]["birthday"], '%Y/%m/%d')
+                            except ValueError as e:
+                                # csv_records[0]["era"]でプラスする値を条件分岐
+                                try:
+                                    birthday_age_datetime = datetime.datetime.strptime('19' + self.csv_records[0]["birthday"], '%Y年%m月%d日')
+                                    if self.csv_records[0]["era"] == "大正":
+                                        birthday_age_datetime += taisyo
+                                    elif self.csv_records[0]["era"] == "昭和":
+                                        birthday_age_datetime += syowa
+                                    elif self.csv_records[0]["era"] == "平成":
+                                        birthday_age_datetime += heisei
+                                    elif self.csv_records[0]["era"] == "令和":
+                                        birthday_age_datetime += reiwa
+                                    else:
+                                        raise Exception
+                                except Exception as e:
+                                    logging.error("元号変換で想定外のエラーが発生")
+                                    birthday_age_datetime = datetime.date.today()
+                            # 生年月日の入力
+                            self.csv_records[0]["birthday"] = birthday_age_datetime.strftime("%Y%m%d")
+                            # 年齢の入力
+                            today = datetime.date.today()
+                            diff_datetime = relativedelta(today, birthday_age_datetime)
+                            if diff_datetime.years < 0:
+                                logging.warning("年齢が不正な値です")
+                                self.csv_records[0]["age"] = ''
+                            else:
+                                self.csv_records[0]["age"] = diff_datetime.years
+                        # 入外区分の入力
+                        if group_code == '2003' or '2004':
+                            if res_json["group_code"][group_code] == 1:
+                                if group_code == '2003':
+                                    self.csv_records[0]["order_type"] = "1"
+                                if group_code == '2004':
+                                    self.csv_records[0]["order_type"] = "2"
+                                continue
+                            else:
+                                self.csv_records[0]["order_type"] = "3"
+                        # 透析区分の入力
+                        if group_code == '2005' or '2006':
+                            if res_json["group_code"][group_code] == 1:
+                                if group_code == '2005':
+                                    self.csv_records[0]["dialysis_category"] = "前"
+                                if group_code == '2006':
+                                    self.csv_records[0]["dialysis_category"] = "後"
+                                continue
+                            else:
+                                self.csv_records[0]["dialysis_category"] = ""
+                        # 診療科名の入力
+                        if group_code == '2007':
+                            for print_turn, detection_result in enumerate(res_json["group_code"][group_code]):
+                                if detection_result == 1:
+                                    self.csv_records[0]["medical_department_name"] = const.CSV_20_MEDICAL_DEPARTMENT_NAME[print_turn]
+                        # 病棟名の入力
+                        if group_code == '2008':
+                            for print_turn, detection_result in enumerate(res_json["group_code"][group_code]):
+                                if detection_result == 1:
+                                    self.csv_records[0]["hospital_ward_name"] = const.CSV_20_HOSPITAL_WARD_NAME[print_turn]
+                        # 保険種別の入力
+                        if group_code == '2009':
+                            for print_turn, detection_result in enumerate(res_json["group_code"][group_code]):
+                                if detection_result == 1:
+                                    self.csv_records[0]["insurance_type"] = const.CSV_20_INSURANCE_TYPE[print_turn]
+                        # 生活習慣病チェックの入力
+                        if group_code == '2010':
+                            for print_turn, detection_result in enumerate(res_json["group_code"][group_code]):
+                                if detection_result == 1:
+                                    self.csv_records[0]["lifestyle_disease_check"] = "1"
+                                else:
+                                    self.csv_records[0]["lifestyle_disease_check"] = "0"
+                        # 報告書の入力
+                        if group_code == '2011':
+                            for print_turn, detection_result in enumerate(res_json["group_code"][group_code]):
+                                # 報告書2部の入力
+                                if detection_result == 1 and print_turn == 0:
+                                    self.csv_records[0]["report_2nd"] = "1"
+                                else:
+                                    self.csv_records[0]["report_2nd"] = "0"
+                                # 報告書3部の入力
+                                if detection_result == 1 and print_turn == 1:
+                                    self.csv_records[0]["report_3rd"] = "1"
+                                else:
+                                    self.csv_records[0]["report_3rd"] = "0"
+                                # 報告書4部の入力
+                                if detection_result == 1 and print_turn == 2:
+                                    self.csv_records[0]["report_4th"] = "1"
+                                else:
+                                    self.csv_records[0]["report_4th"] = "0"
+                        # FAXの入力
+                        if group_code == '2012':
+                            if res_json["group_code"][group_code][0] == 1:
+                                self.csv_records[0]["fax"] = "1"
+                            else:
+                                self.csv_records[0]["fax"] = "0"
+                        # 緊急の入力
+                        if group_code == '2013':
+                            if res_json["group_code"][group_code][0] == 1:
+                                self.csv_records[0]["emergency"] = "1"
+                            else:
+                                self.csv_records[0]["emergency"] = "0"
+                    else:
+                        # TODO 共通の処理まとめられるはず
+                        #csv_21に追記する内容
+                        # 専用セットの場合
+                        if bool(re.match('211\d',group_code)):
+                            for print_turn, detection_result in enumerate(res_json["group_code"][group_code]):
+                                tmp_record = base_record.copy()
+                                if detection_result == 1:
+                                    tmp_record["dedicated_set"] = "専用セット" + str(int(group_code[3]) * 10 + print_turn + 1)
+                                    self.csv_records.append(tmp_record)
+                        # 負荷試験の場合
+                        elif bool(re.match('213\d',group_code)):
+                            for print_turn, detection_result in enumerate(res_json["group_code"][group_code]):
+                                tmp_record = base_record.copy()
+                                if detection_result == 1:
+                                    if group_code[3] == '1':
+                                        tmp_record["load_test"] = "血糖" + str(print_turn * 30)
+                                    if group_code[3] == '2':
+                                        tmp_record["load_test"] = "インスリン" + str(print_turn * 30)
+                                    if group_code[3] == '3':
+                                        tmp_record["load_test"] = "CRP" + str(print_turn * 30)
+                                    self.csv_records.append(tmp_record)
+                        # 検査項目の場合
+                        else:
+                            for print_turn, detection_result in enumerate(res_json["group_code"][group_code]):
+                                self.group_code = group_code
+                                self.print_turn = print_turn
+                                # 値渡しでtmpを初期化する
+                                tmp_record = base_record.copy()
+                                # チェックボックス判定が「1」の項目を項目コードへ変換してcsv出力する
+                                if detection_result == 1:
+                                    self.fetch_item_code()
+                                    # 項目コードが印刷マスタに登録されていない場合
+                                    if self.item_code is None:
+                                        # DBの取得結果がタプルで返却するため、エラーコードをタプルで定義
+                                        self.item_code = (ErrorCode.E1005.value,)
+                                    tmp_record["inspection_item"] = self.item_code[0]
+                                    self.csv_records.append(tmp_record)
+        # 項目コードを取得する
+        def fetch_item_code(self):
+            # postgreSQL接続
+            connection = psycopg2.connect(const.DB_CONNECT)
+            cursor = connection.cursor()
+            sql = '''SELECT item_code FROM print_item_master WHERE hospital_code = %(hospital_code)s and
+                                                                request_document_code = %(request_document_code)s and
+                                                                print_pattern_code = %(print_pattern_code)s and
+                                                                group_code = %(group_code)s and
+                                                                print_turn = %(print_turn)s;'''
+
+            cursor.execute(sql, {'hospital_code' : self.hospital_code,
+                                'request_document_code' : self.request_document_code,
+                                'print_pattern_code' : self.print_pattern_code,
+                                'group_code' : self.group_code,
+                                'print_turn' : str(self.print_turn)}
+                        )
+            self.item_code = cursor.fetchone()
+            # postgreSQL切断
+            cursor.close()
+            connection.close()
+
+        # エラーzip,csv出力
+        def output_error(self, error_code_member):
+            logging.error("output_error処理が呼び出し")
+            logging.error("エラーメッセージを出力")
+            logging.error(error_code_member.value)
+            # エラー発生したzipファイルをエラーディレクトリへ移動
+            try:
+                shutil.move(self.zip_file_path, const.ERROR_ZIP_OUTPUT_DIR)
+            except shutil.Error as e:
+                logging.info("エラーzipファイルはエラーディレクトリへ移動済なので移動処理をスキップ")
+            # エラーcsv出力
+            YYYYMMDD = self.zip_file_path.split('/')[-1].split('_')[1]
+            HHMMSS = self.zip_file_path.split('/')[-1].split('_')[2]
+            if os.path.isfile(const.ERROR_CSV_OUTPUT_DIR + person_code + '_' + YYYYMMDD + '_' + HHMMSS + '.csv'):
+                with open(const.ERROR_CSV_OUTPUT_DIR + person_code + '_' + YYYYMMDD + '_' + HHMMSS + '.csv', 'a') as f:
+                    writer = csv.writer(f)
+                    writer.writerow([self.image_file_path.split('/')[-1], self.person_code, error_code_member.name, error_code_member.value])
+            else:
+                with open(const.ERROR_CSV_OUTPUT_DIR + person_code + '_' + YYYYMMDD + '_' + HHMMSS + '.csv', 'a') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(['filename', 'person_code', 'error_code', 'message'])
+                    writer.writerow([self.image_file_path.split('/')[-1], self.person_code, error_code_member.name, error_code_member.value])
+            return
+
+    ## クラス定義終了
+
+    # インスタンス化
+    image_info = ImageFileInfoClass(person_code, zip_file_path, image_file_path)
+    # ファイル名のバーコード解析
+    image_info.analyze_barcode_value()
+
+    # 出力用csvレコードの初期化
+    image_info.init_csv_record()
+
+    # OCRサービスコール
+    try:
+        logging.info("OCRサービスコールを開始")
+        image_info.call_AIinside_OCR()
+        # AIinsideの結果、QRコード結果をcsvrecordsへ追加
+        image_info.add_AIinside_OCR_result()
+        logging.info("OCRサービスコールが完了")
+    except Exception as e:
+        logging.error(e , exc_info=True)
+        image_info.output_error(ErrorCode.E1007)
+        return
+
+    # C++アプリケーションコール
+    try:
+        # 時間がかかる処理は、awaitと宣言してからイベントループのrun_in_executorで呼び出す
+        logging.info("C++アプリケーションコールを開始")
+        # チェックボックス解析処理
+        await image_info.recognition_request_document_checkbox()
+        if image_info.res is not None:
+            logging.info("解析結果:" + image_info.res.decode('utf-8'))
+            logging.info("C++アプリケーションコールが完了")
+        if image_info.res is None:
+            logging.info("作業日誌のスキップ")
+            return
+        # チェックボックス認識結果をcsv_recordsにマージする
+        image_info.add_checkbox_recognition_result()
+    except Exception as e:
+        logging.error(e , exc_info=True)
+        image_info.output_error(ErrorCode.E1006)
+        return
+
+    # csv配置
+    try:
+        logging.info("CSV生成を開始")
+        # チェックボックス解析結果をjson形式に変換する
+        if image_info.res is None:
+            logging.info("作業日誌のためcsv生成はスキップ:")
+            return
+        else:
+            res_json = json.loads(image_info.res)
+
+        # csvファイル出力先ディレクトリパラメータ
+        YYYYMMDD = zip_file_path.split('/')[-1].split('_')[1]
+        HHMMSS = zip_file_path.split('/')[-1].split('_')[2]
+        zip_file_name = zip_file_path.split('/')[-1].split('.')[0]
+        logging.info("zip_file_path表示")
+        logging.info(zip_file_path)
+        logging.info("zip_file_name表示")
+        logging.info(zip_file_name)
+        # 日誌の場合
+        if image_info.diary_document_flg:
+            logging.info("日誌のため生成スキップ")
+            return
+        # 検査依頼書の場合
+        if image_info.request_document_flg:
+            logging.info("検査依頼書のcsv生成開始")
+        for trun, csv_record in enumerate(image_info.csv_records):
+            # 一回目(csv_20)と残り(csv_21)で場合分け trun == 0
+            if trun == 0:
+                # 文字列に""を付与
+                for key in const.CSV_20_STRING_KEY_LIST:
+                    if key in csv_record:
+                        csv_record[key] = '"' + csv_record[key] + '"'
+                csv_file_name = 'ORDHB_' + person_code + '_' + YYYYMMDD + '_' + HHMMSS + '_' + str(image_info.csv_records[0]["request_document_code"]) + '.csv'
+                # csv書き込み 第二引数 a:追記モード
+                with open(const.WORKING_TMP_DIR + person_code + '/' + zip_file_name + '/' + csv_file_name, 'a') as f:
+                    writer = csv.DictWriter(f, const.csv_20_list)
+                    writer.writerow(csv_record)
+            else:
+                # 文字列に""を付与
+                for key in const.CSV_21_STRING_KEY_LIST:
+                    if key in csv_record:
+                        csv_record[key] = '"' + csv_record[key] + '"'
+                csv_file_name = 'ORDHB_' + person_code + '_' + YYYYMMDD + '_' + HHMMSS + '_' + str(image_info.csv_records[0]["request_document_code"] + 1) + '.csv'
+                # csv書き込み 第二引数 a:追記モード
+                with open(const.WORKING_TMP_DIR + person_code + '/' + zip_file_name + '/' + csv_file_name, 'a') as f:
+                    # dedicated_set inspection_item load_test のキー存在するかで場合分けして参照先引数リストを変更する
+                    if 'dedicated_set' in csv_record:
+                        writer = csv.DictWriter(f, const.csv_21_list_dedicated_set, extrasaction='ignore')
+                    elif 'inspection_item' in csv_record:
+                        writer = csv.DictWriter(f, const.csv_21_list_inspection_item, extrasaction='ignore')
+                    elif 'load_test' in csv_record:
+                        writer = csv.DictWriter(f, const.csv_21_list_load_test, extrasaction='ignore')
+                    else:
+                        continue
+                    writer.writerow(csv_record)
+        logging.info("CSV生成が完了")
+    except Exception as e:
+        logging.error(e , exc_info=True)
+        logging.error('CSV生成でエラー発生')
+        return
+
+# 担当者コードから所属コードと担当者名を取得する
+def fetch_person_info(person_code):
+    # postgreSQL接続
+    connection = psycopg2.connect(const.DB_CONNECT)
+
+    # sql実行 user_id から affiliation, user_name を取得
+    cursor = connection.cursor()
+    sql = 'SELECT affiliation, user_name FROM login_user_info WHERE user_id = %(user_id)s;'
+    user_id = person_code
+    cursor.execute(sql, {'user_id':user_id})
+    results = cursor.fetchone()
+
+    # 結果確認
+    if results is None:
+        logging.error("DB上に存在しないuser_id:" + person_code + "です。")
+        return results
+
+    # postgreSQL切断
+    cursor.close()
+    connection.close()
+
+    # affiliation, user_name 返却
+    return results[0], results[1]
+
+
+if __name__ == "__main__":
+    # 監視するディレクトリを指定
+    watch_dir = os.path.abspath(const.WORKING_TMP_DIR)
+    logging.info("watch dir: " + watch_dir)
+    # イベントハンドラ定義
+    event_handler = FileEventHandler.ZipFileEventHandler()
+    observer = Observer()
+    observer.schedule(event_handler, watch_dir, recursive=True)
+    logging.info("watching..")
+    observer.start()
+    try:
+        while True:
+            time.sleep(1)
+            parallel_analysis()
+    except Exception as e:
+            observer.unschedule_all()
+            logging.error("予期しないエラーが発生しました。")
+            logging.error(e)
+            logging.error("finishing..")
+            observer.stop()
+    observer.join()
+    logging.error("end watch.")

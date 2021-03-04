@@ -1,0 +1,28 @@
+module UserStampsConcern
+  extend ActiveSupport::Concern
+
+  included do
+    before_create :update_created_by
+    before_update :update_updated_by
+  end
+
+  def update_created_by
+    self.created_by = current_auth0_id
+    self.updated_by = current_auth0_id
+  end
+
+  def update_updated_by
+    self.updated_by = current_auth0_id
+  end
+
+<<<<<<< HEAD
+  module_function
+
+  def current_user_auth0_id
+    RequestStore.store[:current_user_auth0_id] || 'system'
+=======
+  def current_auth0_id
+    Current.auth0_id || 'system'
+>>>>>>> 7680ec8a4d206d411e1b7ec76caa1540248ccbfc
+  end
+end

@@ -101,4 +101,4 @@ public (active)
 [応答時間が長すぎます問題](https://teratail.com/questions/35290)<br>
 [ファイル権限コマンド](https://qiita.com/t-a-run/items/239ed690ece7a011804a)<br>
 [Apache 2.4 設定ファイルの記述例](https://qiita.com/100/items/ab31e57fcc66ac661d5c)<br>
-
+https://qiita.com/bezeklik/items/990bed2e7e529584fa57

@@ -11,6 +11,7 @@
 ## エディター
 - Sublime Text (https://www.sublimetext.com/)
 - tmux
+- Notepad++
 
 ## terminal
 - Hyper (https://hyper.is/)
@@ -39,3 +40,6 @@
 - PHP-CS-Fixer
 - awesome mysql (awesome で検索するとよいプラグインが出てくる)
 - Oh My Zsh
+
+## テストツール
+- Selenium

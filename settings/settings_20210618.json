@@ -1,0 +1,164 @@
+{
+  "workbench.iconTheme": "vscode-great-icons",
+  "editor.wordWrap": "on",
+  "editor.cursorBlinking": "solid",
+  "workbench.colorCustomizations": {
+    "editorCursor.foreground": "#ff4500",
+    "terminalCursor.foreground": "#ff4500",
+    "list.inactiveSelectionForeground": "#e9ecef",
+    "tab.activeBorder": "#228a96"
+  },
+  "emmet.variables": {
+    "lang": "ja"
+  },
+  "editor.tokenColorCustomizations": {
+    "comments": "#ffb468"
+  },
+  "editor.suggestSelection": "first",
+  "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "[php]": {
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client"
+  },
+  "workbench.colorTheme": "Absent Contrast (rainglow)",
+  "vsnotes.defaultNotePath": "c:\\Users\\narieda\\Documents\\メモ",
+  "files.eol": "\n",
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "yzhang.markdown-all-in-one"
+  },
+  "editor.copyWithSyntaxHighlighting": false,
+  "todo-tree.tree.showScanModeButton": true,
+  "todo-tree.highlights.defaultHighlight": {
+    "icon": "flame",
+    "type": "tag",
+    "foreground": "#F1F117",
+    "background": "#070F17",
+    "opacity": 20,
+    "iconColour": "#FFD62B"
+  },
+  "todo-tree.highlights.customHighlight": {
+    "FIXME": {
+      "type": "line",
+      "background": "#F1D069",
+      "opacity": 20,
+      "gutterIcon": true
+    }
+  },
+  "todo-tree.tree.grouped": true,
+  "todo-tree.general.tags": ["BUG", "HACK", "FIXME", "TODO", "XXX", "FIX"],
+  "todo-tree.general.tagGroups": {
+    "FIXME": ["FIXME", "FIXIT", "FIX", "TODO", "XXX"]
+  },
+  "workbench.editor.enablePreview": false,
+  "php.validate.executablePath": "C:\\php\\php.exe",
+  "phpcs.standard": "C:\\Users\\narieda\\Documents\\settings\\phpcs\\CUSTOM\\ruleset.xml",
+  "phpmd.rules": "C:\\study\\開発実習用ディレクトリのベース\\開発実習用ディレクトリのベース\\exercises\\settings\\phpmd\\ruleset.xml",
+  "editor.tabSize": 2,
+  "prettier.jsxSingleQuote": true,
+  "prettier.singleQuote": true,
+  "highlight-matching-tag.styles": {
+    "opening": {
+      "name": {
+        "highlight": "#fff"
+      }
+    }
+  },
+  "csscomb.preset": "C:\\Users\\narieda\\Documents\\settings\\csscomb\\.csscomb.json",
+  "editor.columnSelection": false,
+  "code-eol.color": "#6A655D",
+  "editor.renderWhitespace": "all",
+  "remote.SSH.remotePlatform": {
+    "192.168.12.29": "linux",
+    "192.168.0.10": "linux",
+    "192.168.0.6": "linux",
+    "192.168.12.19": "linux",
+    "192.168.0.11": "linux",
+    "192.168.0.4": "linux",
+    "192.168.12.55": "linux",
+    "192.168.0.12": "linux",
+    "192.168.0.13": "linux",
+    "192.168.12.14": "linux"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "peacock.favoriteColors": [
+    {
+      "name": "Angular Red",
+      "value": "#dd0531"
+    },
+    {
+      "name": "Azure Blue",
+      "value": "#007fff"
+    },
+    {
+      "name": "JavaScript Yellow",
+      "value": "#f9e64f"
+    },
+    {
+      "name": "Mandalorian Blue",
+      "value": "#1857a4"
+    },
+    {
+      "name": "Node Green",
+      "value": "#215732"
+    },
+    {
+      "name": "React Blue",
+      "value": "#61dafb"
+    },
+    {
+      "name": "Something Different",
+      "value": "#832561"
+    },
+    {
+      "name": "Svelte Orange",
+      "value": "#ff3d00"
+    },
+    {
+      "name": "Vue Green",
+      "value": "#42b883"
+    }
+  ],
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "workbench.activityBar.visible": true,
+  "workbench.startupEditor": "none",
+  "workbench.preferredDarkColorTheme": "Absent (rainglow)",
+  "files.trimFinalNewlines": true,
+  // システムのclipboardにコピー
+  "vim.useSystemClipboard": true,
+
+  // 検索に:を入れる
+  "vim.cmdLineInitialColon": true,
+
+  "vim.hlsearch": true,
+
+  // 言わずもがなeasymotion
+  "vim.easymotion": true,
+
+  // カーソル上にあるワードを"*"で検索
+  "vim.visualstar": true,
+
+  // 諸々のctrlキーを使った操作が有効になる
+  "vim.useCtrlKeys": true,
+  "vim.insertModeKeyBindings": [
+    {
+      "before": ["j", "j"],
+      "after": ["<Esc>"]
+    }
+  ],
+  "mssql.connections": [
+    {
+      "server": "{{put-server-name-here}}",
+      "database": "{{put-database-name-here}}",
+      "user": "{{put-username-here}}",
+      "password": "{{put-password-here}}"
+    }
+  ]
+}

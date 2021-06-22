@@ -101,3 +101,92 @@ https://book.cakephp.org/3/ja/core-libraries/collections.html
 ## $this->Html->script
 echo $this->Html->script('sample.js'); // その場所で出力するのでechoが必要
 $this->Html->script('sample.js', ['block' => true]); // その場所で出力せずfetchのタイミングで出力されるのでechoはいらない
+
+## バリデーション
+
+https://qiita.com/azukiazusa/items/9e8bbe461bdbc7ee572c
+メソッド名	説明
+add	ルールを追加する
+addNested	ネストされたデータをバリデートする
+addNestedMany	1対多の関係をバリデートする
+remove	ルールを削除する
+requirePresence	フィールドに存在することを要求する。nullは許容する
+allowEmpty	空を許容する。3.7から非推奨
+notEmpty	空を認めない。フィールドに存在することは要求しない。3.7から非推奨
+notBlank	空を認めず、更に半角スペースも認めない
+allowEmptyString	空を許容し、かつ文字列か
+notEmptyString	空を認めず、かつ文字列か
+allowEmptyArray	空を許容し、かつ配列か
+notEmptyArray	空を認めず、かつ配列
+allowEmptyFile	空を許容し、かつファイルか
+notEmptyFile	空を認めず、かつファイルか
+allowEmptyDate	空を許容し、かつ日付型か
+notEmptyDate	空を認めず、かつ日付型か
+allowEmptyTime	空を許容し、かつ時刻か
+notEmptyTime	空を認めず、かつ時刻か
+allowEmptyDateTime	空を許容し、かつdatetime型か
+notEmptyDateTime	空を認めず、かつdatetime型か
+alphaNumeric	半角英数字か
+lengthBetween	指定した文字数の範囲か
+creditCard	クレジットカードの形式か
+greaterThan	指定した数字を超えるか
+greaterThenOrEqual	指定した数字以上
+lessThen	指定した数字未満
+lessThenOrEqual	指定した数字以下
+equals	指定した数字と一致
+notEquals	指定した数字と不一致
+sameAs	指定したフィールドと一致（厳格な比較)
+notSameAs	指定したフィールドと不一致(厳格な比較)
+equalToField	指定したフィールドと一致
+notEqualToField	指定したフィールドと一致
+graterThenToField	指定したフォールドを超える
+graterThenOrEqualToField	指定したフィールド以上
+lessThenToField	指定したフィールド未満
+lessThenOrEqualToField	指定したフィールド以下
+containsNonAlphaNumeric	指定した回数英数字以外が含まれているか
+date	ymd形式がどうか
+datetime	datetime形式がどうか
+time	時刻の形式かどうか
+boolean	真偽値かどうか
+decimal	十進数小数か
+email	メールアドレス形式か
+ip	IPアドレスの形式か
+ip4	IPv4の形式か
+ip6	IPv6の形式か
+minLength	スカラ値が指定した文字数以下か
+maxLength	スカラ値が指定した文字数以下か
+minLengthBytes	スカラ値が指定したバイト数以下か
+maxLengthBytes	スカラ値が指定したバイト数以下か
+numeric	is_numericか
+naturalNumber	自然数かどうか
+nonNegativeInteger	0以上の自然数か
+range	指定した範囲の数値か
+url	urlの形式か
+urlWithProtocol	urlの形式で、スキーマが必須
+inList	リストの中に存在するか
+uuid	uuidか
+uploadedFile	ファイルの形式か
+latLong	経度または緯度の形式か
+latitude	経度か
+longitude	緯度か
+ascii	ASCII文字か
+utf8	BMP UTF-8文字か
+utf8Extended	UTF-8文字か
+integer	数字か
+isArray	配列か
+isScaler	スカラ値か
+hexColor	16進数カラーコードか
+multipleOptions	複数選択セレクトボックスの値か
+hasAtLeast	フィールドが指定された数以上の要素をもつか
+hasAtMost	フィールドが指定された数以下の要素をもつか
+regex	フィールドが正規表現に一致するか
+
+
+## debug kit
+強制表示
+```
+app.php
+'DebugKit' => [
+        'forceEnable' => true,
+],
+```

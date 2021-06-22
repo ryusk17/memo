@@ -8,5 +8,6 @@
   - f １ページ戻る
 
 # dein
+- vim --version 8 以上必要
 - プラグイン動作が不調
 :call dein#recache_runtimepath()

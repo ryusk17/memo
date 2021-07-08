@@ -58,3 +58,13 @@ CRLFをLFに置換すると言いましたが、このコマンドでは正確�
 
 findの-execで実行する場合、{}に検索結果のファイル名が入ります。
 そして実行したいコマンドの最後は\で閉じます。
+
+
+## chmod
+[ファイルまたはディレクトリのみへのchmodコマンド](http://www.tec-q.com/note/2007/11/_chmod.html)
+
+### ファイルの場合
+- find . -type f -print | xargs chmod 664
+
+### ディレクトリの場合
+- find . -type d -print | xargs chmod 775

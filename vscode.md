@@ -50,3 +50,16 @@ class="abc_xyz -> class="abc-xyz
 ## settings
 - color https://code.visualstudio.com/api/references/theme-color
   - "workbench.colorTheme": "Solarized Light",
+
+## インデント
+ファイル全部折りたたみ
+Ctrl + K → Ctrl + 0
+
+ファイル全部展開
+Ctrl + K → Ctrl + J
+
+カレント全部折りたたみ
+Ctrl + K → Ctrl + [
+
+カレント全部展開
+Ctrl + K → Ctrl + ]

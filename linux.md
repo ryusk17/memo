@@ -68,3 +68,37 @@ findの-execで実行する場合、{}に検索結果のファイル名が入り
 
 ### ディレクトリの場合
 - find . -type d -print | xargs chmod 775
+
+## systemd-tmpfiles
+https://qiita.com/kuroneko9/items/70a102a7bb1aa53661a2
+https://mikemikeblog.com/how-to-use-systemd-tmpfiles-with-centos8/
+https://blog.n-z.jp/blog/2017-06-04-cron-systemd-timer.html
+https://zenn.dev/hi_ka_ru/articles/d01bf1a91bade0
+
+- 設定ファイルは/etc/tmpfiles.d/*.conf
+- 設定ファイルを/usr/lib/systemd/system/systemd-tmpfiles-clean.serviceが呼び出す
+- systemd-tmpfiles-clean.serviceを/usr/lib/systemd/system/systemd-tmpfiles-clean.timerが呼び出す（defaultの呼び出し間隔は起動15分後、以降は1日1回）
+
+- デフォルト設定：/usr/lib/tmpfiles.d/
+- カスタム設定：/etc/tmpfiles.d/
+
+- conf設定内容
+```
+(型)　(クリーンするディレクトリ)　(権限)　(所有者)　(所有グループ)　(最終更新からどの期間経てば削除するか)
+ex. v /tmp 1777 root root 10d
+```
+
+- 実行確認
+`SYSTEMD_LOG_TARGET=console SYSTEMD_LOG_LEVEL=debug /usr/bin/systemd-tmpfiles --clean`
+
+- timer 起動状態確認
+`systemctl status systemd-tmpfiles-clean.timer`
+
+- 次回の実行時刻確認
+`systemctl list-timers`
+
+
+## You have new mail.
+- cron によってメールが送信された時に表示される
+- メール格納場所確認
+`echo $MAIL`

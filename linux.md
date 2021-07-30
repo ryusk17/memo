@@ -74,10 +74,16 @@ https://qiita.com/kuroneko9/items/70a102a7bb1aa53661a2
 https://mikemikeblog.com/how-to-use-systemd-tmpfiles-with-centos8/
 https://blog.n-z.jp/blog/2017-06-04-cron-systemd-timer.html
 https://zenn.dev/hi_ka_ru/articles/d01bf1a91bade0
+https://www.it-swarm-ja.com/ja/systemd/%60systemdtmpfiles-clean%60%E3%81%8C%E6%A9%9F%E8%83%BD%E3%81%97%E3%81%AA%E3%81%84%E3%81%AE%E3%81%AF%E3%81%AA%E3%81%9C%E3%81%A7%E3%81%99%E3%81%8B%EF%BC%9F/960857606/
+https://www.unix.com/man-page/centos/5/tmpfiles.d/
 
 - 設定ファイルは/etc/tmpfiles.d/*.conf
 - 設定ファイルを/usr/lib/systemd/system/systemd-tmpfiles-clean.serviceが呼び出す
 - systemd-tmpfiles-clean.serviceを/usr/lib/systemd/system/systemd-tmpfiles-clean.timerが呼び出す（defaultの呼び出し間隔は起動15分後、以降は1日1回）
+
+- チェックする時刻項目
+  - dir: atime, mtime
+  - file: atime, mtime, ctime
 
 - デフォルト設定：/usr/lib/tmpfiles.d/
 - カスタム設定：/etc/tmpfiles.d/
@@ -87,6 +93,7 @@ https://zenn.dev/hi_ka_ru/articles/d01bf1a91bade0
 (型)　(クリーンするディレクトリ)　(権限)　(所有者)　(所有グループ)　(最終更新からどの期間経てば削除するか)
 ex. v /tmp 1777 root root 10d
 ```
+1d = 24h
 
 - 実行確認
 `SYSTEMD_LOG_TARGET=console SYSTEMD_LOG_LEVEL=debug /usr/bin/systemd-tmpfiles --clean`

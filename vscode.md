@@ -47,6 +47,16 @@ class="abc_xyz -> class="abc-xyz
 
 ```
 
+- 全角文字
+[^\x01-\x7E] ※半角文字以外
+
+- 日本語
+[ぁ-んァ-ヶｱ-ﾝﾞﾟ一-龠]
+
+- 正規表現参考記事
+  - https://arc-tech.hatenablog.com/entry/2021/01/20/105620
+  - https://so-zou.jp/software/tech/programming/tech/regular-expression/meta-character/variable-width-encoding.htm
+
 ## settings
 - color https://code.visualstudio.com/api/references/theme-color
   - "workbench.colorTheme": "Solarized Light",

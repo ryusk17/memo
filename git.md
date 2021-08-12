@@ -87,3 +87,23 @@ master -> staging: 検証
 
 1. feature -> staging: 検証環境にて動作確認
 2. feature -> master: 本番環境反映
+
+
+## branch 削除
+マージ済みのローカルやリモートのブランチを一括削除するコマンド
+
+ローカル側のコマンドは他人のPRをたくさん確認する人は便利かもしれません。
+リモート側のコマンドは完全に管理者向けです。基本は使わないかもしれませんが、マージした後ブランチを削除してない運用でたまってしまったブランチを削除するのに使えるかなと思います。（このコマンドで200近くのマージ済みブランチを一括削除しました）
+
+### developマージ済みのローカルブランチを一括削除する
+#### 確認用
+git branch --merged origin/develop | grep -v -e master -e develop -e staging
+#### 実行
+git branch --merged origin/develop | grep -v -e master -e develop -e staging | xargs -I% git branch -d %
+### developにマージ済みのリモートブランチを一括削除する
+#### 確認用 git branch -r --merged origin/develop | grep -v -e master -e develop -e staging | sed -e 's% *origin/%%'
+#### 実行用
+git branch -r --merged origin/develop | grep -v -e master -e develop -e staging | sed -e 's% *origin/%%' | xargs -I% git push --delete origin %
+
+以下のgistを参考にしました。
+https://gist.github.com/miukoba/fc3c10a25c1c675c1e97

@@ -190,3 +190,13 @@ app.php
         'forceEnable' => true,
 ],
 ```
+
+## 異なるDB間でアソシエーションしたい
+```
+public function initialize(array $config)
+{
+    parent::initialize($config);
+    $this->setEntityClass('App\Model\Entity\HogeFuga');
+    $this->setTable($this->getConnection()->config()['database'] . '.' . 'hoge_fuga');
+```
+setTableで上記設定をしておくと、クエリビルダが[database].[table] でクエリ生成してくれるため、DB跨いでアソシエーション組めます

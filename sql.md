@@ -32,3 +32,22 @@ character_set_results=utf8mb4
 - `SET foreign_key_checks = 1;`(外部キー制約を設定)
 
 ## EXPLAIN
+
+
+## dump
+https://qiita.com/PlanetMeron/items/3a41e14607a65bc9b60c
+
+### 定義とデータのダンプ
+```
+# データベース
+$ mysqldump -u USER_NAME -p -h HOST_NAME DB_NAME > OUTPUT_FILE_NAME
+
+#テーブル
+$ mysqldump -u USER_NAME -p -h HOST_NAME DB_NAME TABLE_NAME > OUTPUT_FILE_NAME
+
+#テーブルの定義とデータのダンプ
+$ mysqldump -u USER_NAME -p -h HOST_NAME -A -n > OUTPUT_FILE_NAME
+```
+
+## 自動連番のidカラムを後から追加する
+`alter table テーブル名 add id int not null primary key auto_increment;`

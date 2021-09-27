@@ -22,3 +22,18 @@
 - ホーム
 - セル 書式
 - 列の幅の自動調整
+
+## 文字列を抽出
+
+### 左から
+ex. "_"より左
+`=LEFT(R3,FIND("_",R3)-1)`
+
+### 間から
+ex. "_"の間
+`=MID(R5,FIND("_",R5)+1,FIND("_",R5,FIND("_",R5)+1)-FIND("_",R5)-1)`
+https://www.relief.jp/docs/excel-function-find-2nd-character.html
+
+### 右から
+ex. 右から"_"まで
+`=RIGHT(R3,LEN(R3)-FIND("■",SUBSTITUTE(R3,"_","■",LEN(R3)-LEN(SUBSTITUTE(R3,"_","")))))`

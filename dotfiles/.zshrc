@@ -1,3 +1,10 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
@@ -8,7 +15,9 @@ export ZSH="/home/narieda/.oh-my-zsh"
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="robbyrussell"
+#ZSH_THEME="robbyrussell"
+#ZSH_THEME="eastwood"
+ZSH_THEME="powerlevel10k/powerlevel10k"
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -71,9 +80,11 @@ ZSH_THEME="robbyrussell"
 plugins=(
     git
     zsh-autosuggestions
+    zsh-256color
     )
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=5'
-#ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=#ff00ff,bg=cyan,bold,underline'
+#ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=167'
+#ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=167,bg=cyan,bold,underline'
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=24'
 
 source $ZSH/oh-my-zsh.sh
 
@@ -101,6 +112,8 @@ source $ZSH/oh-my-zsh.sh
 #
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
+alias tmux='tmux -2'
+
 alias la='ls -lha'
 alias schema='cd ~/schema/'
 alias cvst='cd /var/src/toshin.narieda.local'
@@ -123,6 +136,8 @@ alias cvww='cd /var/www/waseda.narieda.local'
 
 alias v='vim'
 alias e='emacs'
+
+alias bat='/usr/local/bat/bat'
 
 alias memo='vim ~/.mine/my-note/memo.md'
 alias cmemo='cat ~/.mine/my-note/memo.md'
@@ -175,3 +190,8 @@ function find_emacs() {
 alias fe="find_emacs"
 
 export TERM=xterm-256color
+
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh

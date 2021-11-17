@@ -8,3 +8,13 @@
 | 一時的にシェルに戻りexitでviに戻る | :sh                      |
 | コマンド結果挿入                   | :r! __command__          | :r!pwd |
 | コマンドラインモードで貼り付け     | :C-r"                    |
+| 全行をソートする                   | :%!sort                  |
+| 選択した行をソートする             | V:!sort                  |
+| 選択した行を逆順にする             | V:!tac                   |
+| スマイル                           | :smile                   |
+| 行頭の文字へ移動                   | _, ^                     |
+
+
+
+## 参照
+https://dev.classmethod.jp/articles/vim-use-shellcommands/

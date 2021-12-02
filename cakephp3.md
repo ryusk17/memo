@@ -99,8 +99,10 @@ try {
 https://book.cakephp.org/3/ja/core-libraries/collections.html
 
 ## $this->Html->script
+```
 echo $this->Html->script('sample.js'); // その場所で出力するのでechoが必要
 $this->Html->script('sample.js', ['block' => true]); // その場所で出力せずfetchのタイミングで出力されるのでechoはいらない
+```
 
 ## バリデーション
 
@@ -200,3 +202,7 @@ public function initialize(array $config)
     $this->setTable($this->getConnection()->config()['database'] . '.' . 'hoge_fuga');
 ```
 setTableで上記設定をしておくと、クエリビルダが[database].[table] でクエリ生成してくれるため、DB跨いでアソシエーション組めます
+
+## defaultConnectionName() を使用時のcontain
+default のDBがない といったエラーとなる
+→ controllerにてcontainで使用する全てのmodelをloadModal()する

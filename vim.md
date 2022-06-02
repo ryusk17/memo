@@ -14,3 +14,13 @@
 
 ## 参考
 https://whileimautomaton.net/2008/08/vimworkshop3-kana-presentation
+
+## help
+
+### help のみ開く
+- :help 分からないこと | only
+- help window で c-w o
+- help window で c-w c
+
+## swp 削除
+find . -name '.*.sw*'|xargs rm

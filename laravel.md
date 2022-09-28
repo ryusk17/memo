@@ -20,3 +20,6 @@ https://qiita.com/akira-hagi/items/553da1e122f7c300d6ac
 | composer install | なし          | composer.jsonを元にインストール・composer.lock生成 |
 | composer update  | あり          | composer.jsonを元にアップデート・composer.lock更新 |
 | composer update  | なし          | composer.jsonを元にアップデート・composer.lock生成 |
+
+# 二重送信防止
+$request->session()->regenerateToken();

@@ -19,3 +19,6 @@
 | 内容 | Windows    | Mac  |
 | :---------------- | :--------- | :--- |
 | タブ切り替え      | Ctrl + tab |
+
+## リロード
+Go to View -> Command Pallete... (or hit Ctrl+Shift+p). Then type "reload" and select "Reload Window".

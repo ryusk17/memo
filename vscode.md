@@ -73,3 +73,8 @@ Ctrl + K → Ctrl + [
 
 カレント全部展開
 Ctrl + K → Ctrl + ]
+
+## オススメ拡張機能
+REST Client
+https://qiita.com/toshi0607/items/c4440d3fbfa72eac840c
+https://qiita.com/garcons/items/c4dd7231bc78e7adf0a5

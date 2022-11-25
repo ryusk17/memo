@@ -51,3 +51,13 @@ $ mysqldump -u USER_NAME -p -h HOST_NAME -A -n > OUTPUT_FILE_NAME
 
 ## 自動連番のidカラムを後から追加する
 `alter table テーブル名 add id int not null primary key auto_increment;`
+
+## 外部キー制約とカラムの削除
+https://www.takasay.com/entry/2016/07/08/172140
+
+- テーブルの参照制約を確認
+SHOW CREATE TABLE something\G
+- CONSTRAINTの次に書いてある文字列を指定し外部キー制約の削除
+ALTER TABLE something DROP FOREIGN KEY `xxxxx_xxxxx_xxxxx`;
+- カラム削除
+ALTER TABLE something DROP COLUMN another_id;

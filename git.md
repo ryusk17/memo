@@ -108,6 +108,8 @@ git branch -r --merged origin/develop | grep -v -e master -e develop -e staging 
 以下のgistを参考にしました。
 https://gist.github.com/miukoba/fc3c10a25c1c675c1e97
 
+他参考：https://zenn.dev/nrikiji/articles/25c11286121ad6
+
 ## 削除されたリモートブランチのリモート追跡参照が削除
 git fetch -p
 

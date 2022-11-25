@@ -84,3 +84,7 @@ versionName
 ## アイコン画像設定
 android > app > res > mipmap を open in エクスプローラーで開く
 画像名を ic_launcher.拡張子 として配置
+
+## デバッグ
+https://developer.android.com/studio/install?hl=ja
+https://developer.android.com/studio/debug/dev-options?hl=ja

@@ -1,3 +1,5 @@
+inoremap <silent> jj <Esc>
+
 set number
 set cursorline
 set hlsearch
@@ -8,15 +10,12 @@ set wildmenu
 syntax enable
 set t_Co=256
 set background=dark
-"colorscheme gruvbox
-"colorscheme everforest
 set showmatch matchtime=1
 set showcmd
 set display=lastline
 set list
 set fenc=utf-8
 set virtualedit=onemore
-inoremap <silent> jj <Esc>
 set nrformats=
 set ambiwidth=double
 cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'
@@ -51,4 +50,3 @@ function! s:VSetSearch()
 	let @/ = '\v' . substitute(escape(@s, '/\'), '\n', '\\n', 'g')
 	let @s = temp
 endfunction
-

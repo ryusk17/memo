@@ -1,0 +1,59 @@
+snippet nl
+	nl2br(${1})
+
+snippet pl
+	pl(${1})
+
+snippet pt
+	echo 'test'; exit;
+
+snippet de
+	echo '${1}'; exit;
+
+snippet php
+options word
+	<?php ${1} ?>
+
+snippet hc
+	<!-- ${1} -->
+
+snippet hdd
+	<dd><a href="#">${1}</a></dd>
+
+snippet hurl
+options word
+	<?php echo $this->Html->url('/${1}'); ?>
+
+snippet echo
+options word
+	<?php echo(${1}); ?>
+
+snippet get
+options word
+	<?php echo($this->User->get${1}($this->data)); ?>
+
+snippet getf
+options word
+	<?php echo($this->Utils->getField($this->data['User']['${1}'])); ?>
+
+snippet vard
+options word
+	<?php echo '<pre>'; var_dump(${1}); echo '</pre>'; ?>
+
+snippet if
+options word
+	<?php if (${1}): ?>
+		${2}
+	<?php else: ?>
+		${3}
+	<?php endif; ?>
+
+snippet link
+options word
+	<?php echo $this->Html->link('', ''); ?>>
+
+snippet image
+options word
+	<?php echo $this->Html->image('', ['alt' => '']); ?>
+
+

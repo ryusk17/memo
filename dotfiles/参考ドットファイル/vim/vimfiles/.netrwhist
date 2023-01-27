@@ -1,0 +1,12 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhistcnt =0
+let g:netrw_dirhist_0='/home/iijima/work'
+let g:netrw_dirhist_9='/var/docker/sanyodo/docker_sanyodo/src/sanyodo/wordpress'
+let g:netrw_dirhist_8='/var/docker/sanyodo/docker_sanyodo/config/web/conf'
+let g:netrw_dirhist_7='/var/docker/jka/docker_jka'
+let g:netrw_dirhist_6='/var/docker/jka/docker_jka/config/mysql'
+let g:netrw_dirhist_5='/var/docker/kouhou/rebuild_server/src/mail_dm/src/front/src/Model/Table/ItomanSportsSchoolForm'
+let g:netrw_dirhist_4='/var/docker/kouhou/rebuild_server/src/mail_dm_delivery_list/src/admin/tests/TestFile'
+let g:netrw_dirhist_3='/var/docker/kouhou/rebuild_server/src/mail_dm_delivery_list/src/admin/src/Template/IncludeTargets'
+let g:netrw_dirhist_2='/var/docker/kouhou/rebuild_server/src/report/src/front/tests/TestCase/Shell/Task/UpdateDate'
+let g:netrw_dirhist_1='/home/iijima'

@@ -1,0 +1,52 @@
+export LS_COLORS='di=34:ln=35:so=32:pi=33:ex=31:bd=46;34:cd=43;34:su=41;30:sg=46;30:tw=42;30:ow=43;30'
+export PATH=$HOME/win32yank:$HOME/.composer/vendor/squizlabs/php_codesniffer/bin:$PATH
+
+alias t2="tmux -2"
+alias glg="git log --stat --max-count 10"
+alias gst="git status"
+alias ga="git add"
+alias gco="git checkout"
+
+#cdしたあとlsを自動的に実行する
+#http://qiita.com/puriketu99/items/e3c85fbe0fc4b939d0e2
+setopt auto_cd
+function chpwd() { ls }
+# fzf
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
+export FZF_DEFAULT_OPTS='--height 40% --reverse --border'
+
+# enhancd
+export ENHANCD_FILTER="fzf:fzy:fzf-tmux:peco:percol:gof:pick:icepick:sentaku:selecta"
+source ~/enhancd/init.sh
+
+function git_diff_archive() 
+{
+  local diff=""
+  local h="HEAD"
+  if [ $# -eq 1 ]; then
+    if expr "$1" : '[0-9]*$' > /dev/null ; then
+      diff="HEAD~${1} HEAD"
+    else
+      diff="${1} HEAD"
+    fi
+  elif [ $# -eq 2 ]; then
+    diff="${2} ${1}"
+    h=$1
+  fi
+  if [ "$diff" != "" ]; then
+    diff="git diff --diff-filter=d --name-only ${diff}"
+  fi
+  git archive --format=zip --prefix=root/ $h `eval "$diff"` -o archive.zip
+}
+
+# case ${OSTYPE} in
+#   darwin*)
+#     source "$HOME/.zshrc_mac"
+#     ;;
+#   linux*)
+#     source "$HOME/.zshrc_linux"
+#     ;;
+# esac
+
+

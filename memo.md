@@ -162,4 +162,3 @@ colors": {
         "editorSuggestWidget.foreground":"#aeb9c4",
         "editorSuggestWidget.selectedBackground":"#384450"
             }
-

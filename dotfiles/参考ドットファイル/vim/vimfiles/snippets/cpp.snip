@@ -1,0 +1,1350 @@
+snippet cout
+	std::cout << ${1} << std::endl;
+
+snippet class
+abbr ClassTemplate
+	class ${1:#:name} {
+	public:
+		$1(${3});
+		~$1(${3});
+	};
+	
+snippet classConstructor
+abbr コンストラクタ・デストラクタ
+	${1:#:name}::$1()
+	{
+		${0:TARGET}
+	}
+	
+	$1::~$1()
+	{
+	}
+	
+snippet classFileName
+abbr ファイル名のクラス定義
+	class `expand("%:r")` {
+	public:
+		`expand("%:r")`();
+		~`expand("%:r")`();
+	};
+	
+snippet classFileNameConstructor
+abbr ファイル名のコンストラクタ・デストラクタ
+	`expand("%:r")`::`expand("%:r")`()
+	{
+		${0:TARGET}
+	}
+	
+	`expand("%:r")`::~`expand("%:r")`()
+	{
+	}
+
+snippet #ifndef_IncludeGuard
+abbr インクルードガード
+	#ifndef _`expand("%:r")`_H_
+	#define _`expand("%:r")`_H_
+	
+	${0:TARGET}
+	
+	#endif
+
+snippet MyClassCriticalSectionHelperWin
+abbr Windowsクリティカルセクションの取得消滅を簡略化するためのヘルパ
+	//コンストラクタでEnterCriticalSectionし、
+	//デストラクタでLeaveCriticalSectionするヘルパクラス
+	//このクラスを関数内でauto変数で定義することにより、
+	//関数を抜けると同時にクリティカルセクションから抜けることが出来る。
+	//
+	//これによりクリティカルセクション内で例外が発生した場合にも
+	//ブロックから抜けるときにクリティカルセクションから抜けることが出来る
+	//
+	//クリティカルセクションオブジェクトについては利用側で生成消滅処理を行うこと。
+	class CriticalSectionHelper {
+	public:
+		CriticalSectionHelper(CRITICAL_SECTION &cs) : cs(cs)
+		{
+			::EnterCriticalSection(&cs);
+		}
+		~CriticalSectionHelper();
+		{
+			::LeaveCriticalSection(&cs);
+		}
+	private:
+		CRITICAL_SECTION &cs;
+	};
+
+snippet MyClassDebugLog_H
+abbr デバッグログ出力補助クラス
+	// デバッグログ出力補助クラス
+	#ifndef DEBUG_LOG_H_
+	#define DEBUG_LOG_H_
+
+	//#define USE_DEBUG_LOG
+	#if defined(USE_DEBUG_LOG)
+
+	//デバッグ用のログ出力クラス
+	//利用時はマクロを介して利用すること
+	class DebugLog {
+	public:
+		enum TYPE {
+			eSend,
+			eReceive
+		};
+
+	private:
+		static DebugLog* Instance;
+		static CRITICAL_SECTION cs;
+
+	private:
+		DebugLog();
+		~DebugLog();
+
+	public:
+		static DebugLog* GetInstance();
+		static void DeleteInstance();
+		void Write(TYPE type, const BYTE* data, int length);
+	};
+
+	//デバッグログ出力用のマクロ
+	#define DEBUG_LOG()						DebugLog::GetInstance()
+	#define DEBUG_LOG_DELETE()				DebugLog::DeleteInstance()
+	#define DEBUG_LOG_MESSAGE(a)			DebugLog::GetInstance()->WriteMessage((__FUNC__), (a))
+	#define DEBUG_LOG_MESSAGE2(a, b)		DebugLog::GetInstance()->WriteMessage((__FUNC__), (a), (b))
+	#define DEBUG_LOG_MESSAGE3(a, b, c)		DebugLog::GetInstance()->WriteMessage((__FUNC__), (a), (b), (c))
+	#define DEBUG_LOG_MESSAGE4(a, b, c, d)	DebugLog::GetInstance()->WriteMessage((__FUNC__), (a), (b), (c), (d))
+
+	#else	//defined(USE_DEBUG_LOG)
+
+	//マクロの空定義（デバッグログを利用しない場合はコードを無効にする）
+	#define DEBUG_LOG()
+	#define DEBUG_LOG_DELETE()
+	#define DEBUG_LOG_MESSAGE(a)
+	#define DEBUG_LOG_MESSAGE2(a, b)
+	#define DEBUG_LOG_MESSAGE3(a, b, c)
+	#define DEBUG_LOG_MESSAGE4(a, b, c, d)
+
+	#endif	//defined(USE_DEBUG_LOG)
+
+	#endif	//_DEBUG_LOG_H_
+
+snippet MyClassDebugLog
+abbr デバッグログ出力補助クラス
+	// デバッグログ出力補助クラス
+	//----------------------------------------------------------------------------
+	#include "DebugLog.h"
+
+	#if defined(USE_DEBUG_LOG)
+
+	//#include <stdarg.h>
+	#include <cstdarg>
+
+	//----------------------------------------------------------------------------
+	CRITICAL_SECTION DebugLog::cs;
+
+	DebugLog* DebugLog::Instance = NULL;
+
+	//----------------------------------------------------------------------------
+	DebugLog* DebugLog::GetInstance()
+	{
+		if (Instance == NULL) {
+			Instance = new DebugLog();
+		}
+		return Instance;
+	}
+
+	//----------------------------------------------------------------------------
+	void DebugLog::DeleteInstance()
+	{
+		delete Instance;
+	}
+
+	//----------------------------------------------------------------------------
+	DebugLog::DebugLog()
+	{
+		::InitializeCriticalSection(&cs);
+	}
+
+	//----------------------------------------------------------------------------
+	DebugLog::~DebugLog()
+	{
+		::DeleteCriticalSection(&cs);
+	}
+
+	//----------------------------------------------------------------------------
+	//デバッグ用文字列を出力する
+	void DebugLog::WriteMessage(const char* func, const char* format, ...)
+	{
+		::EnterCriticalSection(&cs);
+
+		AnsiString outMessage = "";
+
+		//タイムスタンプを編集
+		TDateTime dte;
+		TDateTime nowTime = dte.CurrentDateTime();
+		outMessage += nowTime.FormatString("yy/mm/dd, hh:nn:ss, ");
+
+		//関数名を編集
+		outMessage += func;
+		outMessage += "(), ";
+
+		//ログメッセージを編集
+		va_list argp;
+		va_start( argp, format );
+		AnsiString massage = "";
+		massage.vprintf(format, argp);
+		va_end(ap);
+
+		//動作ログとして出力する
+		outMessage += massage;
+		
+		// ここに任意の出力先への出力を実装する
+
+		::LeaveCriticalSection(&cs);
+	}
+
+	#endif	//defined(USE_DEBUG_LOG)
+
+snippet MyClassExeResourceHelper_H
+abbr 実行ファイルのリソース取得補助クラス
+	// 実行ファイルのリソース取得補助クラス
+	#ifndef _RESOURCE_HELPER_H_
+	#define _RESOURCE_HELPER_H_
+
+	class VersionInfoKey {
+	public:
+		static const char* kComments;
+		static const char* kCompanyName;
+		static const char* kFileDescription;
+		static const char* kFileVersion;
+		static const char* kInternalName;
+		static const char* kLegalCopyright;
+		static const char* kLegalTrademarks;
+		static const char* kOriginalFilename;
+		static const char* kPrivateBuild;
+		static const char* kProductName;
+		static const char* kProductVersion;
+		static const char* kSpecialBuild;
+	};
+
+	class ResourceHelper {
+	public:
+		
+	public:
+		ResourceHelper();
+		~ResourceHelper();
+
+	public:
+		//バージョン情報を取得する
+		AnsiString GetVersionInfo(const char* targetExePath, const char* key);
+
+	private:
+		//バージョン情報を取得処理
+		bool GetVersionResourceValue(const char* fileName, const char* nItem, char* lpBuffer);
+	};
+
+	#endif
+
+snippet MyClassExeResourceHelper
+abbr 実行ファイルのリソース取得補助クラス
+	// 実行ファイルのリソース取得補助クラス
+	//---------------------------------------------------------------------------
+	#include "ResourceHelper.h"
+
+	//---------------------------------------------------------------------------
+	const char* VersionInfoKey::kComments         = "Comments";         // コメント
+	const char* VersionInfoKey::kCompanyName      = "CompanyName";      // 会社名
+	const char* VersionInfoKey::kFileDescription  = "FileDescription";  // 説明
+	const char* VersionInfoKey::kFileVersion      = "FileVersion";      // ファイルバージョン
+	const char* VersionInfoKey::kInternalName     = "InternalName";     // 内部名
+	const char* VersionInfoKey::kLegalCopyright   = "LegalCopyright";   // 著作権
+	const char* VersionInfoKey::kLegalTrademarks  = "LegalTrademarks";  // 商標
+	const char* VersionInfoKey::kOriginalFilename = "OriginalFilename"; // 正式ファイル名
+	const char* VersionInfoKey::kPrivateBuild     = "PrivateBuild";     // プライベートビルド情報
+	const char* VersionInfoKey::kProductName      = "ProductName";      // 製品名
+	const char* VersionInfoKey::kProductVersion   = "ProductVersion";   // 製品バージョン
+	const char* VersionInfoKey::kSpecialBuild     = "SpecialBuild";     // スペシャルビルド情報
+
+	//---------------------------------------------------------------------------
+	ResourceHelper::ResourceHelper()
+	{
+	}
+
+	//---------------------------------------------------------------------------
+	ResourceHelper::~ResourceHelper()
+	{
+	}
+
+	//---------------------------------------------------------------------------
+	//バージョン情報を取得する
+	AnsiString ResourceHelper::GetVersionInfo(const char* targetExePath, const char* key)
+	{
+		AnsiString retVersionInfo;
+		char buffer[MAX_PATH];
+		bool isSuccess = GetVersionResourceValue(targetExePath, key, buffer);
+		if (isSuccess == true) {
+			retVersionInfo = buffer;
+		} else {
+			retVersionInfo = "バージョン情報を取得できませんでした。";
+		}
+
+		return retVersionInfo;
+	}
+
+	//---------------------------------------------------------------------------
+	//バージョン情報を取得処理
+	bool ResourceHelper::GetVersionResourceValue(const char* fileName, const char* key, char* lpBuffer)
+	{
+		// 使用する言語IDの宣言
+		static const WORD kCodePageId[] = { 0, 932, 949, 950, 1200, 1250, 1251, 1252, 1253, 1254, 1255, 1256 };
+		static const int kCodePageIdNum = (sizeof(kCodePageId) / sizeof(kCodePageId[0]));
+		static const WORD kLanguageId[] = { 0x0401, 0x0402, 0x0403, 0x0404, 0x0405, 0x0406, 0x0407, 0x0408, 0x0409,
+											0x040A, 0x040B, 0x040C, 0x040D, 0x040E, 0x040F, 0x0410, 0x0411, 0x0412,
+											0x0413, 0x0414, 0x0415, 0x0416, 0x0417, 0x0418, 0x0419, 0x041A, 0x041B,
+											0x041C, 0x041D, 0x041E, 0x041F, 0x0420, 0x0421, 0x0804, 0x0807, 0x0809,
+											0x080A, 0x080C, 0x0810, 0x0813, 0x0814, 0x0816, 0x081A, 0x0C0C, 0x100C };
+		static const int kLanguageIdNum = (sizeof(kLanguageId) / sizeof(kLanguageId[0]));
+
+		// バージョンリソースのサイズを取得
+		DWORD size;
+		DWORD handle;
+		size = ::GetFileVersionInfoSize(fileName, &handle);
+		if (size == 0) {
+			return false;  // バージョン情報リソースの取得に失敗
+		}
+
+		// バージョンリソースの情報を格納するバッファの準備
+		BYTE* versionInfo = new BYTE[size];
+
+		// バージョンリソースを取得
+		DWORD* lplpBuffer;
+		if (::GetFileVersionInfo(fileName, 0, size, versionInfo) == 0) {
+			delete[] versionInfo;
+			return false;
+		}
+
+		// バージョンリソースの言語情報を取得
+		UINT length;
+		if (::VerQueryValue(versionInfo, "\\VarFileInfo\\Translation", (void **)&lplpBuffer, &length) == 0) {
+			delete[] versionInfo;
+			return false;
+		}
+
+		// バージョンリソースの言語情報をもとに該当項目を取得する
+		char bufferPath[MAX_PATH + 1];
+		sprintf(bufferPath, "\\StringFileInfo\\%04x%04x\\%s", LOWORD(*lplpBuffer), HIWORD(*lplpBuffer), key);  // 受け取る情報を指定する文字列
+		char* pDataValue;  // バージョンリソースの情報を指すポインタ
+		if (VerQueryValue(versionInfo, bufferPath, (void **)&pDataValue, &length) != 0) {
+			strcpy(lpBuffer, pDataValue);
+			delete[] versionInfo;
+			return true;
+		}
+
+		// バージョンリソースに言語情報が記録されていない場合は総当りで探す
+		for (int i = 0; i < kCodePageIdNum; i++) {
+			for (int j = 0; j < kLanguageIdNum; j++) {
+				sprintf(bufferPath, "\\StringFileInfo\\%04x%04x\\%s", kLanguageId[j], kCodePageId[i], key);
+				if (VerQueryValue(versionInfo, bufferPath, (void **)&pDataValue, &length)) {
+					strcpy(lpBuffer, pDataValue);
+					delete[] versionInfo;
+					return true;
+				}
+			}
+		}
+
+		lpBuffer[0] = NULL;
+		delete[] versionInfo;
+		return false;
+	}
+
+snippet MyClassThreadTimerBCB_H
+abbr BCBのコンソールアプリなのでTTimerが利用できない場合に使うタイマー
+	// BCBのコンソールアプリなのでTTimerが利用できない場合に使うタイマー
+	#ifndef THREAD_TIMER_H_
+	#define THREAD_TIMER_H_
+
+	//TTimerが動かない為作成した。
+	// TTimerはWM_TIMERメッセージを受け取って動作する。
+	// コンソールアプリではメッセージループがない為、タイムアウトイベントが呼ばれない
+	//
+	//Threadを利用した簡易タイマー
+	//Startしたタイミングから指定した時間分待ってからcallback関数を呼ぶ
+	//TTimerと違い一度だけコールバックを行い自動的に消滅する
+	class ThreadTimer : public TThread {
+	private:
+		enum State {
+			eInit,
+			eRun,
+			eStop,
+			eEnd,
+		};
+	public:
+		__fastcall ThreadTimer(TNotifyEvent callbackEvent, UINT millisec);
+		virtual __fastcall ~ThreadTimer();
+
+	public:
+		void TimerStart();
+		void Stop();
+		void Kill();
+
+	private:
+		void __fastcall Execute();
+
+	private:
+		CRITICAL_SECTION cs;
+		//タイマーの状態
+		State state;
+		//callbackする関数
+		TNotifyEvent callbackEvent;
+		//newされてからcallback関数を呼び出すまでの時間
+		UINT millisec;
+	};
+
+
+	//コールバック用のスレッド
+	//
+	//タイマースレッドでコールバックした場合に、コールバックメソッド内で、
+	//ThreadTimerを停止させた場合にデッドロック状態になってしまう。
+	//そのため、タイマースレッドとは別スレッドでコールバックメソッドを呼び出す
+	class CallBackThread : public TThread {
+	public:
+		__fastcall CallBackThread(TNotifyEvent callbackEvent);
+		virtual __fastcall ~CallBackThread();
+
+	private:
+		void __fastcall Execute();
+
+		//callbackする関数
+		TNotifyEvent callbackEvent;
+	};
+
+	#endif
+
+snippet MyClassThreadTimerBCB
+abbr BCBのコンソールアプリなのでTTimerが利用できない場合に使うタイマー
+	// BCBのコンソールアプリなのでTTimerが利用できない場合に使うタイマー
+	//---------------------------------------------------------------------------
+
+	#include <vcl.h>
+	#include "stdafx.h"
+	#pragma hdrstop
+
+	//---------------------------------------------------------------------------
+	#include "ThreadTimer.h"
+
+
+	//---------------------------------------------------------------------------
+	__fastcall ThreadTimer::ThreadTimer(TNotifyEvent callbackEvent, UINT millisec)
+		: TThread(true)
+		, state(eInit)
+		, callbackEvent(callbackEvent)
+		, millisec(millisec)
+	{
+		DEBUG_LOG_MESSAGE("");
+		::InitializeCriticalSection(&cs);
+		this->FreeOnTerminate = false; //trueの場合に自動破棄する
+	}
+
+	//---------------------------------------------------------------------------
+	__fastcall ThreadTimer::~ThreadTimer()
+	{
+		DEBUG_LOG_MESSAGE("");
+		this->Kill();
+		this->WaitFor(); //スレッドが終了するまで待つ
+
+		::DeleteCriticalSection(&cs);
+	}
+
+	//---------------------------------------------------------------------------
+	void ThreadTimer::TimerStart()
+	{
+		DEBUG_LOG_MESSAGE("");
+
+		::EnterCriticalSection(&cs);
+
+		switch (this->state) {
+			case eInit:
+				this->state = eRun;
+				this->Start();
+				break;
+			case eStop:
+				this->state = eRun;
+				break;
+			case eRun:
+			case eEnd:
+			default:
+				//無視する
+				break;
+		}
+
+		::LeaveCriticalSection(&cs);
+	}
+
+	//---------------------------------------------------------------------------
+	void ThreadTimer::Stop()
+	{
+		DEBUG_LOG_MESSAGE("");
+		::EnterCriticalSection(&cs);
+
+		switch (this->state) {
+			case eRun:
+				this->state = eStop;
+				break;
+			case eInit:
+			case eStop:
+			case eEnd:
+			default:
+				//無視する
+				break;
+		}
+
+		::LeaveCriticalSection(&cs);
+	}
+
+	//---------------------------------------------------------------------------
+	void ThreadTimer::Kill()
+	{
+		DEBUG_LOG_MESSAGE("");
+		::EnterCriticalSection(&cs);
+		if (!Terminated) {
+			this->state = eEnd;
+			this->Terminate();
+		}
+		::LeaveCriticalSection(&cs);
+	}
+
+	//---------------------------------------------------------------------------
+	void __fastcall ThreadTimer::Execute()
+	{
+		//一定間隔で起きて終了要求がきていたら即スレッドを終了する
+		const int MAX_SLEEP_TIME = 500; //500ms
+		int loopCount = this->millisec / MAX_SLEEP_TIME;
+		int modMillisec = this->millisec % MAX_SLEEP_TIME;
+		while (loopCount > 0) {
+			::Sleep(MAX_SLEEP_TIME);
+
+			if (this->state == eRun) {
+				loopCount--;
+			}
+
+			if (this->Terminated == true) {
+				DEBUG_LOG_MESSAGE("end");
+				return;
+			}
+		}
+		::Sleep(modMillisec);
+
+		//ここより上は面倒なのでクリティカルセクションにしていない。
+		//レースコンディションによりずれるのはタイマ停止や終了が
+		//最大Sleep時間(500ms)遅れるだけである
+		//この遅延が問題になるようであれば、クリティカルセクションを考える必要がある
+		//----------------------------------------------------------------------
+
+		//タイマーイベントを発生させる
+		::EnterCriticalSection(&cs);
+		if (this->Terminated == false) {
+			//CallBackThreadのインスタンスはCallBackThreadのスレッドが終了時に
+			//自動的に削除されるため、ここではCallBackThreadを生成するだけで良い
+			new CallBackThread(this->callbackEvent);
+			//this->callbackEvent(this);
+			this->Terminate();
+			DEBUG_LOG_MESSAGE("Execute end");
+		}
+		::LeaveCriticalSection(&cs);
+	}
+
+
+
+	//---------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
+	__fastcall CallBackThread::CallBackThread(TNotifyEvent callbackEvent)
+		: TThread(true)
+		, callbackEvent(callbackEvent)
+	{
+		this->Suspended = false; //falseの場合に、インスタンス作成後、Execute()メソッドがすぐに呼び出される
+		this->FreeOnTerminate = true; //trueの場合に自動破棄する
+	}
+
+	//---------------------------------------------------------------------------
+	__fastcall CallBackThread::~CallBackThread()
+	{
+	}
+
+	//---------------------------------------------------------------------------
+	void __fastcall CallBackThread::Execute()
+	{
+		try {
+			this->callbackEvent(this);
+		} catch (Exception& e) {
+			DEBUG_LOG_MESSAGE("例外キャッチ");
+			DEBUG_LOG_MESSAGE3("例外 %s：%s", AnsiString(e.ClassName()).c_str(), e.Message.c_str());
+		}
+	}
+
+snippet MyClassSetTimerWrapperWin_H
+abbr SetTimer関数を利用したタイマークラス
+	// SetTimer関数を利用したタイマークラス
+	#pragma once
+
+	//タイマーのメインロジック
+	//
+	//当クラスでは::SetTimerを利用してタイマーを実現している。
+	//コンソールアプリなど、SetTimerを利用したタイマーが使えない場合は
+	//別途実装をする必要がある。
+	//
+	//::SetTimerを利用するため、コールバックするスレッドは
+	//SetHandleで設定したWindowのメッセージ処理スレッドである。
+	class TimerWrapperCore
+	{
+	public:
+		//TimerWrapperCoreを設定する
+		//TimerWrapperCoreを設定した場合は設定元がインスタンス消滅の責務を負う
+		static void SetInstance(TimerWrapperCore* timerWrapperCore);
+		//TimreWrapperCoreを取得する
+		static TimerWrapperCore* GetInstance();
+		
+	public:
+		TimerWrapperCore(void);
+		virtual ~TimerWrapperCore(void);
+
+	public:
+		virtual UINT_PTR SetTimer(UINT_PTR nIDEvent, UINT uElapse, TIMERPROC lpTimerFunc) const;
+		virtual BOOL KillTimer(UINT_PTR uIDEvent) const;
+
+		//タイマーに必要なWindowハンドルを設定する
+		void SetHandle(HWND hWnd) { this->hWnd = hWnd; }
+
+	private:
+		static TimerWrapperCore* sTimerWrapperCore;
+		HWND hWnd;
+	};
+
+
+	#include "DebugLog.h"
+
+	//タイマー機能を提供するクラス
+	//
+	//タイマー機能をラップして、コールバック先に、
+	//任意のクラスインスタンスのコールバックメソッドを指定できるようにしたクラス。
+	//ただし、コールバックメソッドを呼び出すスレッドは
+	//TimerWrapperCoreの実装に依存する為、注意が必要。
+	//
+	//利用例
+	//class TimerUser
+	//{
+	//public:
+	//	TimerUser();
+	//	~TimerUser();
+	//
+	//	void Action();
+	//	void NotifyTimeout();
+	//private:
+	//	TimerWrapper<TimerUser> timer;
+	//};
+	//
+	//TimerUser::TimerUser()
+	//{
+	//	//自インスタンス・コールバックメソッド・タイマーID・タイムアウトミリ秒
+	//	timer = new TimerWrapper<TimerUser>(this, &TimerUser::NotifyTimeout, 1, 100);
+	//}
+	//
+	//TimerUser::~TimerUser()
+	//{
+	//	delete timer;
+	//}
+	//
+	//void TimerUser::Action()
+	//{
+	//	timer->StartTimer();
+	//}
+	//
+	//void TimerUser::NotifyTimeout()
+	//{
+	//	//タイムアウト時の処理
+	//}
+	template<class CallBackClass>
+	class TimerWrapper {
+	private:
+		typedef TimerWrapper<CallBackClass> TimerWrapperClass;
+		typedef void (CallBackClass::*TimeOutEventHandler)(); //コールバック用のメンバメソッドポインタ型の定義
+
+	public:
+		//コンストラクタ
+		TimerWrapper(CallBackClass* callBackInstance, TimeOutEventHandler onTimeOutEvent, UINT_PTR timerId, DWORD dwTime)
+			: callBackInstance(callBackInstance)
+			, onTimeOutEvent(onTimeOutEvent)
+			, timerId(timerId)
+			, dwTime(dwTime)
+		{
+		}
+
+		//デストラクタ
+		~TimerWrapper()
+		{
+			sTimerInstanceMap.erase(this->timerId);
+			this->StopTimer();
+		}
+
+	public:
+		//TimerWrapperCoreからのコールバックメソッド
+		static void CALLBACK TimerProc(HWND hWnd, UINT msg, UINT timerId, DWORD dwTime);
+
+		//コールバック処理
+		static void ActCallback(UINT timerId)
+		{
+			//タイマーIDに対応するTimerWrapperのインスタンスが登録されているか？
+			if (sTimerInstanceMap.find(timerId) == sTimerInstanceMap.end()) {
+				//登録されていない場合は無視
+				DEBUG_LOG_MESSAGE("Timer instance not find");
+				return;
+			}
+
+			//タイマーIDに対応するTimerWrapperのインスタンスから、
+			//コールバック先のインスタンスとコールバックするメソッドを取得する
+			TimerWrapper<CallBackClass>* timer = sTimerInstanceMap[timerId];
+			CallBackClass* target = timer->callBackInstance;
+			TimeOutEventHandler onTimeOutEvent = timer->onTimeOutEvent;
+
+			//コールバック先クラスインスタンスのコールバックするメソッドを呼び出す
+			(target->*onTimeOutEvent)();
+		}
+
+		//タイマーを開始する
+		bool StartTimer()
+		{
+			//一旦Mapに登録しておき、タイマーの開始に失敗した場合に削除する
+			//※UTの関係で"開始できたら登録する"という作りにしていない。
+			sTimerInstanceMap.insert(std::pair<UINT_PTR, TimerWrapperClass*>(this->timerId, this));
+			if (TimerWrapperCore::GetInstance()->SetTimer(this->timerId, this->dwTime, TimerProc) == 0) {
+				DEBUG_LOG_MESSAGE2("SetTimer error timerId:0x%08X", this->timerId);
+				sTimerInstanceMap.erase(this->timerId);
+				return false;
+			}
+
+			return true;
+		}
+
+		//タイマーを停止する
+		bool StopTimer()
+		{
+			BOOL isSuccess = TimerWrapperCore::GetInstance()->KillTimer(this->timerId);
+			if (isSuccess == TRUE) {
+				return true;
+			}
+			return false;
+		}
+
+	private:
+		//タイマーIDと当クラスインスタンスのマップ
+		static std::map<UINT_PTR, TimerWrapperClass*> sTimerInstanceMap;
+		//コールバック先のクラスインスタンス
+		CallBackClass* callBackInstance;
+		//コールバックするメソッド
+		TimeOutEventHandler onTimeOutEvent;
+		//タイマーID
+		UINT_PTR timerId;
+		//タイムアウトまでの時間(ms)
+		DWORD dwTime;
+	};
+
+	//staticメンバ変数の実態定義
+	template <class CallBackClass>
+	std::map<UINT_PTR, TimerWrapper<CallBackClass>*> TimerWrapper<CallBackClass>::sTimerInstanceMap;
+
+
+	#pragma warning(push)
+	#pragma warning(disable:4100)
+	//TimerWrapperCoreからのコールバックメソッド
+	template <class CallBackClass>
+	void CALLBACK TimerWrapper<CallBackClass>::TimerProc(HWND hWnd, UINT msg, UINT timerId, DWORD dwTime)
+	{
+		DEBUG_LOG_MESSAGE3("msg:0x%08X, timerId:0x%08X", msg, timerId);
+		TimerWrapper<CallBackClass>::ActCallback(timerId);
+	}
+	#pragma warning(pop)
+
+snippet MyClassSetTimerWrapperWin
+abbr SetTimer関数を利用したタイマークラス
+	// SetTimer関数を利用したタイマークラス
+	#include "StdAfx.h"
+	#include "TimerWrapper.h"
+
+	TimerWrapperCore gTimerWrapperCore;
+	TimerWrapperCore* TimerWrapperCore::sTimerWrapperCore = &gTimerWrapperCore;
+
+	//TimerWrapperCoreを設定する
+	//TimerWrapperCoreを設定した場合は設定元がインスタンス消滅の責務を負う
+	void TimerWrapperCore::SetInstance(TimerWrapperCore* timerWrapperCore)
+	{
+		sTimerWrapperCore = timerWrapperCore;
+	}
+
+	//TimerWrapperCoreを取得する
+	TimerWrapperCore* TimerWrapperCore::GetInstance()
+	{
+		return sTimerWrapperCore;
+	}
+
+
+	TimerWrapperCore::TimerWrapperCore(void)
+		: hWnd(NULL)
+	{
+	}
+
+
+	TimerWrapperCore::~TimerWrapperCore(void)
+	{
+	}
+
+	UINT_PTR TimerWrapperCore::SetTimer(UINT_PTR nIDEvent, UINT uElapse, TIMERPROC lpTimerFunc) const
+	{
+		return ::SetTimer(this->hWnd, nIDEvent, uElapse, lpTimerFunc);
+	}
+
+	BOOL TimerWrapperCore::KillTimer(UINT_PTR uIDEvent) const
+	{
+		return ::KillTimer(this->hWnd, uIDEvent);
+	}
+
+snippet MyClassProducerConsumerPtn_H
+abbr マルチスレッドパターンのProducer-Consumerの実装
+	// マルチスレッドパターンのProducer-Consumerの実装
+	#pragma once
+
+	class TaskEvent;
+
+	class TaskEventTable
+	{
+	private:
+		static const int MAX_COMMAND;
+
+	public:
+		TaskEventTable(void);
+		~TaskEventTable(void);
+
+	public:
+		void Put(const TaskEvent* taskEvent);
+		const TaskEvent* Take();
+	private:
+		//スレッド同期のためのクリティカルセクションオブジェクト
+		CRITICAL_SECTION cs;
+		//消費者のイベントオブジェクト
+		HANDLE eventConsumer;
+		//生産者のイベントオブジェクト
+		HANDLE eventProducer;
+		//タスクコマンドのキュー
+		std::queue<const TaskEvent*> taskEventQueue;
+		
+	};
+
+snippet MyClassProducerConsumerPtn
+abbr マルチスレッドパターンのProducer-Consumerの実装
+	// マルチスレッドパターンのProducer-Consumerの実装
+	#include "StdAfx.h"
+	#include "TaskEventTable.h"
+
+	#include "TaskEvent/TaskEvent.h"
+
+	const int TaskEventTable::MAX_COMMAND = 100;
+
+	TaskEventTable::TaskEventTable(void)
+	{
+		::InitializeCriticalSection(&cs);
+		this->eventConsumer = ::CreateEvent(NULL, TRUE, FALSE, "TaskEventConsumer");
+		this->eventProducer = ::CreateEvent(NULL, TRUE, FALSE, "TaskEventProducer");
+	}
+
+
+	TaskEventTable::~TaskEventTable(void)
+	{
+		::EnterCriticalSection(&cs);
+		//キューに残っている全てのイベントを削除する
+		int size = this->taskEventQueue.size();
+		for (int i = 0; i < size; i++) {
+			const TaskEvent* t = this->taskEventQueue.front();
+			this->taskEventQueue.pop();
+			delete t;
+		}
+		::LeaveCriticalSection(&cs);
+
+		::DeleteCriticalSection(&cs);
+		::CloseHandle(this->eventConsumer);
+		::CloseHandle(this->eventProducer);
+	}
+
+	void TaskEventTable::Put(const TaskEvent* taskEvent)
+	{
+		::EnterCriticalSection(&cs);
+		
+		//キューが最大数に達している場合は消費されるまで生産者のスレッドを待たせる。
+		while (this->taskEventQueue.size() >= MAX_COMMAND) {
+			::LeaveCriticalSection(&cs);
+			::WaitForSingleObject(this->eventProducer, INFINITE);
+			::EnterCriticalSection(&cs);
+			::ResetEvent(this->eventProducer);
+		}
+
+		//キューに追加
+		this->taskEventQueue.push(taskEvent);
+
+		//消費者にコマンドを追加したことを通知
+		::SetEvent(this->eventConsumer);
+
+		::LeaveCriticalSection(&cs);
+	}
+
+	const TaskEvent* TaskEventTable::Take()
+	{
+		::EnterCriticalSection(&cs);
+
+		//キューに何も入っていない場合はキューに追加されるまで消費者のスレッドを待たせる。
+		while (this->taskEventQueue.size() <= 0) {
+			::LeaveCriticalSection(&cs);
+			::WaitForSingleObject(this->eventConsumer, INFINITE);
+			::EnterCriticalSection(&cs);
+			::ResetEvent(this->eventConsumer);
+		}
+
+		//キューから取り出す
+		const TaskEvent* taskEvent = this->taskEventQueue.front();
+		this->taskEventQueue.pop();
+
+		//生産者にコマンドが消費されたことを通知
+		::SetEvent(this->eventProducer);
+
+		::LeaveCriticalSection(&cs);
+		return taskEvent;
+	}
+
+
+snippet MyClassEventHandler
+abbr C#のEventHandlerのようなものをCppで実装
+	// C#のEventHandlerのようなものをCppで実装
+	//---------------------------------------------------------------------------
+
+	#ifndef EventHandlerH
+	#define EventHandlerH
+	//---------------------------------------------------------------------------
+
+	//---------------------------------------------------------------------------
+	//利用方法
+	//---------------------------------------------------------------------------
+	////呼び出されるクラス・メソッドを定義する
+	//class HandlerTestClass {
+	//public:
+	//	void HandlerTestMethod(UnicodeString& event) {
+	//		printf("HandlerTestMethod - %s", event.c_str());
+	//	}
+	//};
+	//class HandlerTestClass2 {
+	//public:
+	//	void HandlerTestMethod2(UnicodeString& event){
+	//		printf("HandlerTestMethod2 - %s", event.c_str());
+	//	}
+	//	void HandlerTestMethod2_void(void) {
+	//		printf("HandlerTestMethod2_void");
+	//	}
+	//};
+	//
+	////イベントハンドラの定義する
+	////登録したいイベントハンドラの引数を指定する
+	//EventHandler<UnicodeString&> handler;
+	//EventHandler<void> handler2; //引数なしのイベントハンドラの場合はvoidを指定する
+	//
+	////イベント登録する
+	//void testRegist() {
+	//
+	//	HandlerTestClass test;
+	//	HandlerTestClass2 test2;
+	//	handler.add(&test, HandlerTestClass::HandlerTestMethod); //クラスインスタンスとハンドラを指定する
+	//	handler.add(&test2, HandlerTestClass2::HandlerTestMethod2);
+	//	handler2.add(&test2, HandlerTestClass2::HandlerTestMethod2_void);
+	//}
+	//
+	////イベント実行する
+	//void testOnEvent() {
+	//	UnicodeString message = "message";
+	//	handler.OnEvent(message);
+	//	// HandlerTestMethod - message
+	//	// HandlerTestMethod2 - message
+	//
+	//	handler2.OnEvent();
+	//	// HandlerTestMethod_void
+	//
+	//  //operater()をオーバーロードしているのでオブジェクトを関数のように呼ぶことも可能
+	//	handler(message);
+	//	// HandlerTestMethod - message
+	//	// HandlerTestMethod2 - message
+	//
+	//	handler2();
+	//	// HandlerTestMethod_void
+	//}
+	//
+	//イベントを削除する
+	//void testUnRegiste() {
+	//	handler.del(&test, HandlerTestClass::HandlerTestMethod);
+	//}
+	//
+	//---------------------------------------------------------------------------
+
+	//---------------------------------------------------------------------------
+	//Delegate先のクラスが違っていてもメソッドの型が同じ場合は
+	//同じイベントリストに登録できるようにするための抽象クラス
+	template < typename TArgs > //引数の型
+	class DelegateBase {
+	public:
+		DelegateBase(){}
+		virtual ~DelegateBase(){}
+
+	public:
+		//イベントを実行する
+		virtual void OnEvent(TArgs args) = 0;
+		//同じdelegateインスタンスか？
+		// イベントハンドラのdelete時に必要
+		virtual bool IsEqual(DelegateBase& delegate) = 0;
+	};
+
+	//---------------------------------------------------------------------------
+	//Delegate本体
+	//クラスインスタンスとメンバメソッドのポインタを持ち、メソッドコールを隠蔽するクラス
+	template < typename T, typename TArgs > //対象クラスの型, 引数の型
+	class Delegate : DelegateBase<TArgs> {
+	private:
+		typedef void (T::*EventFunc)( TArgs );
+
+	public:
+	   //生成関数
+	   static DelegateBase<TArgs>* Create( T* obj, void (T::*func)( TArgs ) ) {
+		  Delegate<T, TArgs>* delegate = new Delegate<T, TArgs>();
+		  delegate->Set( obj, func );
+		  return delegate;
+	   }
+
+	public:
+		Delegate(){};
+		virtual ~Delegate(){};
+
+	public:
+		//イベントを実行する
+		virtual void OnEvent(TArgs args) {
+			(m_obj->*m_func)(args);
+		}
+
+		//同じクラスのメンバ関数を呼び出すdelegateか？
+		virtual bool IsEqual(DelegateBase<TArgs>& delegate) {
+			Delegate<T, TArgs>* d = dynamic_cast<Delegate<T, TArgs>*>(&delegate);
+			if (d == NULL) {
+				return false; //同じ型のクラスではない
+			}
+			if (this->m_obj != d->m_obj) return false;
+			if (this->m_func != d->m_func) return false;
+			return true;
+		}
+
+		// オブジェクトとメソッドを登録する
+		void Set(T* obj, EventFunc func ) {
+			m_obj = obj;
+			m_func = func;
+		}
+
+	protected:
+		T* m_obj;               // オブジェクト
+		EventFunc m_func;       // 関数ポインタ
+	};
+
+	//---------------------------------------------------------------------------
+	//同じ引数のdelegateをまとめて管理するクラス
+	template < typename TArgs > //引数の型
+	class EventHandler {
+	public:
+		EventHandler() {}
+		~EventHandler() {
+			int length = this->eventList.size();
+			for (int i = 0; i < length; i++) {
+				DelegateBase<TArgs>* d = this->eventList[i];
+				delete d;
+			}
+			this->eventList.clear();
+		}
+	public:
+		//ハンドラを追加する
+		template<typename T>
+		void Add(T* obj, void (T::*func)( TArgs )) {
+			DelegateBase<TArgs>* delegate = Delegate<T, TArgs>::Create(obj, func);
+			this->eventList.push_back(delegate);
+		}
+
+		//ハンドラを削除する
+		template<typename T>
+		void Del(T* obj, void (T::*func)( TArgs )) {
+			DelegateBase<TArgs>* delegate = Delegate<T, TArgs>::Create(obj, func); //評価用のインスタンスを生成
+			std::vector< DelegateBase<TArgs>* >::iterator it  = this->eventList.begin();
+			std::vector< DelegateBase<TArgs>* >::iterator end = this->eventList.end();
+			for ( ; it != end; it++ ) {
+				DelegateBase<TArgs>* d = (*it);
+				if (d->IsEqual(*delegate) == true) {
+					delete d;
+					this->eventList.erase(it);
+					break;
+				}
+			}
+			delete delegate; //評価用のインスタンスを削除
+		}
+
+		//イベント通知する
+		void OnEvent(TArgs eventArgs) {
+			std::vector< DelegateBase<TArgs>* >::iterator it  = this->eventList.begin();
+			std::vector< DelegateBase<TArgs>* >::iterator end = this->eventList.end();
+			for ( ; it != end; it++ ) {
+				DelegateBase<TArgs>* d = (*it);
+				d->OnEvent(eventArgs);
+			}
+		}
+		//イベント通知する
+		void operator()(TArgs eventArgs) {
+			this->OnEvent(eventArgs);
+		}
+
+	private:
+	   std::vector<DelegateBase<TArgs>*> eventList;
+	};
+
+
+	//---------------------------------------------------------------------------
+	//---------------------------------------------------------------------------
+	//以下は引数なし(void)の定義
+	//---------------------------------------------------------------------------
+	//引数なし(void)用のDelegateBaseクラス
+	template <>
+	class DelegateBase<void> {
+	public:
+		DelegateBase(){}
+		virtual ~DelegateBase(){}
+	public:
+		virtual void OnEvent() = 0;
+		virtual bool IsEqual(DelegateBase& delegate) = 0;
+	};
+
+	//---------------------------------------------------------------------------
+	//引数なし(void)用のDelegateクラス
+	template < typename T > //対象クラスの型, 引数の型
+	class Delegate<T,void> : DelegateBase<void> {
+	private:
+		typedef void (T::*EventFunc)( void );
+
+	public:
+	   // デリゲータ生成関数
+	   static DelegateBase<void>* Create( T* obj, void (T::*func)( void ) ) {
+		  Delegate* delegate = new Delegate();
+		  delegate->Set( obj, func );
+		  return delegate;
+	   }
+
+	public:
+		Delegate(){};
+		virtual ~Delegate(){};
+
+	public:
+		//イベントを実行する
+		virtual void OnEvent() {
+			(m_obj->*m_func)();
+		}
+
+		//同じクラスのメンバ関数を呼び出すdelegateか？
+		virtual bool IsEqual(DelegateBase<void>& delegate) {
+			Delegate<T, void>* d = dynamic_cast<Delegate<T, void>*>(&delegate);
+			if (d == NULL) {
+				return false;
+			}
+			if (this->m_obj != d->m_obj) return false;
+			if (this->m_func != d->m_func) return false;
+			
+			return true;
+		}
+
+		//オブジェクトとメソッドを登録
+		void Set(T* obj, EventFunc func) {
+			m_obj = obj;
+			m_func = func;
+		}
+
+	protected:
+		T* m_obj;               // オブジェクト
+		EventFunc m_func;       // 関数ポインタ
+	};
+
+	//---------------------------------------------------------------------------
+	//引数なし(void)用のEventHandlerクラス
+	template <>
+	class EventHandler<void> {
+	public:
+		EventHandler() {}
+		~EventHandler() {
+			int length = this->eventList.size();
+			for (int i = 0; i < length; i++) {
+				DelegateBase<void>* d = this->eventList[i];
+				delete d;
+			}
+			this->eventList.clear();
+		}
+	public:
+		//ハンドラを追加する
+		template<typename T>
+		void Add(T* obj, void (T::*func)( void )) {
+			DelegateBase<void>* delegate = Delegate<T, void>::Create(obj, func);
+			this->eventList.push_back(delegate);
+		}
+
+		//ハンドラを削除する
+		template<typename T>
+		void Del(T* obj, void (T::*func)( void )) {
+			DelegateBase<void>* delegate = Delegate<T, void>::Create(obj, func); //評価用のインスタンスを生成
+			std::vector< DelegateBase<void>* >::iterator it  = this->eventList.begin();
+			std::vector< DelegateBase<void>* >::iterator end = this->eventList.end();
+			for ( ; it != end; it++ ) {
+				DelegateBase<void>* d = (*it);
+				if (d->IsEqual(*delegate) == true) {
+					delete d;
+					this->eventList.erase(it);
+					break;
+				}
+			}
+			delete delegate; //評価用のインスタンスを削除
+		}
+
+		//イベント通知する
+		void OnEvent() {
+			std::vector< DelegateBase<void>* >::iterator it  = this->eventList.begin();
+			std::vector< DelegateBase<void>* >::iterator end = this->eventList.end();
+			for ( ; it != end; it++ ) {
+				DelegateBase<void>* d = (*it);
+				d->OnEvent();
+			}
+		}
+		//イベント通知する
+		void operator()() {
+			this->OnEvent();
+		}
+
+	private:
+	   std::vector<DelegateBase<void>*> eventList;
+	};
+
+	#endif
+
+
+snippet MyFuncGetIniIntValue
+abbr iniファイルから数値を取得する。
+	//iniファイルから数値を取得する。
+	//::GetPrivateProfileIntを利用するとKeyが存在するが、不正な値の場合は0になり
+	//Default値が利用されない。
+	//::GetPrivateProfileStringを利用して、不正な値の場合もデフォルト値が利用されるようにラップした。
+	UINT GetIniIntValue(const char* section, const char* key, UINT defaultValue, const char* profileName)
+	{
+		//::GetPrivateProfileStringのデフォルト値に利用するために、デフォルト値文字列に変換
+		char buf[255];
+		std::stringstream ss;
+		ss << defaultValue;
+
+		//Iniから文字列として値を取得
+		::GetPrivateProfileString(section, key, ss.str().c_str(), buf, 255, profileName);
+		std::string str = buf;
+
+		//文字列を数値に変換
+		std::istringstream stis(str, std::ios_base::in);
+		UINT value;
+		stis >> value;
+		if ((stis.fail() == true) || (stis.bad() == true) || (stis.eof() == false)) {
+			//エラーの場合はデフォルト値を入れる
+			value = defaultValue;
+		}
+		return value;
+	}
+
+snippet MyFuncConvertBigEndianDataBytesToDword
+abbr ビックエンディアンのデータ配列からDWORDデータを生成する
+	// ビックエンディアンのデータ配列からDWORDデータを生成する
+	DWORD ConvertBigEndianDataBytesToDword(const BYTE* dataBytes)
+	{
+		return static_cast<DWORD>(dataBytes[0] << 24 |
+								  (dataBytes[1] << 16) |
+								  (dataBytes[2] << 8) |
+								  (dataBytes[3]));
+	}
+
+snippet MyFuncShoutdownWindows
+abbr Windowsをシャットダウンする
+	//Windowsをシャットダウンする
+	void ShutdownWindows()
+	{
+		HANDLE hProcess = ::GetCurrentProcess();
+		
+		//トークンを取得する
+		HANDLE hToken;
+		::OpenProcessToken(hProcess, TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES, &hToken);
+
+		//LUIDを取得する
+		LUID Luid;
+		::LookupPrivilegeValue(NULL, SE_SHUTDOWN_NAME, &Luid);
+		
+		//特権を有効にする
+		TOKEN_PRIVILEGES tokenNew, tokenPre;
+		tokenNew.PrivilegeCount = 1;
+		tokenNew.Privileges[0].Luid = Luid;
+		tokenNew.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+		DWORD ret;
+		::AdjustTokenPrivileges(hToken, FALSE, &tokenNew
+			, sizeof(tokenPre), &tokenPre, &ret);
+
+		// シャットダウン処理
+		UINT nFlag = EWX_POWEROFF; // 電源ＯＦＦ
+		nFlag |= EWX_FORCE; // プロセス強制終了
+		::ExitWindowsEx(nFlag, 0); 
+
+		return;
+	}
+
+snippet MyFuncIntToBigEndian
+abbr ビッグエンディアンのデータに変換する
+	//ビッグエンディアンのデータに変換する
+	int ToBigEndian(int value)
+	{
+		return (((value & 0x000000FF) << 24) | 
+				((value & 0x0000FF00) << 8)  |
+				((value & 0x00FF0000) >> 8)  |
+				((value & 0xFF000000) >> 24));
+	}
+
+snippet MyFuncToBigEndianDWORD
+abbr ビッグエンディアンのデータに変換する
+	//ビッグエンディアンのデータに変換する
+	DWORD ToBigEndian(DWORD value)
+	{
+		return (((value & 0x000000FF) << 24) | 
+				((value & 0x0000FF00) << 8)  |
+				((value & 0x00FF0000) >> 8)  |
+				((value & 0xFF000000) >> 24));
+	}
+
+snippet MyFuncToBigEndianWORD
+abbr ビッグエンディアンのデータに変換する
+	//ビッグエンディアンのデータに変換する
+	WORD ToBigEndian(WORD value)
+	{
+		return (((value & 0x00FF) << 8) |
+				((value & 0xFF00) >> 8));  
+	}
+
+snippet MyfuncCharToUnicodeStringBCB
+abbr char(Ascii文字)配列をUnicodeStringに変換する
+	//char(Ascii文字)配列をUnicodeStringに変換する
+	UnicodeString CharToUnicodeString(const char* chars, int length)
+	{
+		//charsはAsciiコードなのでAnsiStringに詰めて返す
+		AnsiString retString = "";
+		for (int i = 0; i < length; i++) {
+			retString += chars[i];
+		}
+
+		return retString; //ここでAnsiStringからUnicodeStringへ変換される
+	}
+

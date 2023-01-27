@@ -1,0 +1,20 @@
+snippet alias
+	Alias /${1}/ "/${2}/"
+
+snippet dir
+	<Directory "/opt/lampp/apache2/htdocs">
+		Options Indexes FollowSymLinks
+		AllowOverride All
+		Order allow,deny
+		Allow from all
+	</Directory>
+
+snippet vir
+	<VirtualHost *:443>
+		DocumentRoot /var/www/html/path/to/
+		ServerName local.xxx
+		Setenv HTTPS ON
+	</VirtualHost>
+
+
+

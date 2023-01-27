@@ -61,3 +61,11 @@ SHOW CREATE TABLE something\G
 ALTER TABLE something DROP FOREIGN KEY `xxxxx_xxxxx_xxxxx`;
 - カラム削除
 ALTER TABLE something DROP COLUMN another_id;
+
+## テーブル変更
+- 型変更
+ALTER TABLE [テーブル名] MODIFY [カラム名] [型];
+ALTER TABLE [テーブル名] MODIFY [カラム名] [型] NOT NULL;
+
+- カラム削除
+ALTER TABLE [テーブル名] DROP COLUMN [フィールド名];

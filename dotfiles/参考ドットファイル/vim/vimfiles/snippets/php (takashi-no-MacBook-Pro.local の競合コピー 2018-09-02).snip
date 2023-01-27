@@ -1,0 +1,45 @@
+snippet nl
+	nl2br(${1})
+
+snippet pl
+	pl(${1})
+
+snippet ar
+options word
+	array('${1}' => '')
+
+snippet pt
+	echo 'test'; exit;
+
+snippet de
+	echo '${1}'; exit;
+
+snippet php
+options word
+	<?php ${1} ?>
+
+snippet getf
+options word
+	$this->Util->getField(${1});
+
+snippet vard
+options word
+	echo '<pre>'; var_dump(${1}); echo '</pre>';
+
+snippet foreach
+options word
+	foreach(${1} as $key => $value) {
+	}
+
+
+snippet tmerged
+options word
+	$this->Transition->mergedData()
+
+snippet tall
+options word
+	$this->Transition->allData()
+
+snippet out
+options word
+	->out(print_r(${1}, true));

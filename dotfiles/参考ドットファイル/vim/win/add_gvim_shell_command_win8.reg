@@ -1,0 +1,10 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\*\shell\GVim]
+@=""
+"MUIVerb"="GVim‚ÅŠJ‚­"
+"Icon"="C:\\Programs\\tools\\vim74-kaoriya-win64\\gvim.exe"
+
+[HKEY_CLASSES_ROOT\*\shell\GVim\Command]
+@="\"C:\\Programs\\tools\\vim74-kaoriya-win64\\gvim.exe\" \"--remote-tab-silent\" \"%1\""
+

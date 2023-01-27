@@ -1,0 +1,58 @@
+snippet pri
+abbr private
+	private
+
+snippet pro
+abbr protected
+	protected
+
+snippet pu
+abbr public
+	public
+
+snippet sf
+abbr static final
+	static final
+
+snippet logt
+abbr LOG.trace("");
+	LOG.trace("${1:#:message}");
+
+snippet logta
+abbr LOG.trace 配列表示
+	if (LOG.isTraceEnabled() == true) {
+		for (${1:#:type} ${2:#:name} : ${3:#:list}) {
+			LOG.trace("$2:" + $2);
+		}
+	}
+
+snippet sfmap
+abbr static final Map
+	static final Map<${1:#:Type1}, ${2:#:Type2}> ${3:#:name}
+		= new HashMap<$1, $2>() {{
+			put(${4:#:key}, ${5:#:value});
+	}};
+
+snippet maptolist_key
+abbr Map to ArrayList, key
+		new ArrayList(${1:#:mapname}.keySet());
+
+snippet maptolist_value
+abbr Map to ArrayList, value
+		new ArrayList(${1:#:mapname}.values());
+
+snippet emptylist
+abbr 空の不変なListを生成する
+	Collections.<${1:#:Type}>emptyList();
+
+
+snippet for_map
+	for(Map.Entry<${1:#:Type1}, ${2:#:Type2}> ${3:entry} : ${4:#:map}.entrySet()) {
+	}
+
+snippet get_tack_trace
+	Thread.currentThread().getStackTrace();
+
+snippet get_method_name
+	Thread.currentThread().getStackTrace()[1].getMethodName();
+

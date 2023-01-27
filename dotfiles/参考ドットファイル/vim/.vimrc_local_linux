@@ -1,0 +1,23 @@
+
+"RAMディスクを設定する。指定したRAMディスクが無い場合はホームディレクトリとする
+let $RAM_DISK_PATH = 'R:'
+if !isdirectory($RAM_DISK_PATH)
+  let $RAM_DISK_PATH = $HOME
+endif
+
+"$HOMEを書き換える前にフォントディレクトリを$PAHTに追加しておく
+let $PATH = $PATH . ':' . $HOME . '/.fonts'
+
+"他、必要なパスも通しておく
+"	let $PATH = $PATH . ':' . $HOME
+"	let $PATH = $PATH . ':' . $HOME . '/vimfiles'
+"	let $PATH = $PATH . ':' . $HOME . '/grep/bin'
+
+"ctagsの位置を設定する
+let $CTAGS_PATH = $HOME . '/ctags.exe'
+
+"grepに外部のgrep設定する
+let $GREP_PATH = 'grep'
+" set grepprg=$HOME/grep/bin/grep
+set grepprg=$GREP_PATH
+

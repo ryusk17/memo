@@ -1,0 +1,37 @@
+
+"PATHの途中に\が入るとうまくパスを読めなくなる場合があるので\を/に変換しておく
+let $PATH = substitute($PATH, "\\", "/", "g")
+let $VIM = substitute($VIM, "\\", "/", "g")
+
+"必要なパスも通しておく
+"Win環境の$PATHは使わない。そのまま使うと$PATHの内容によってはdiffが動かなくなった。
+"Win環境の$PATHに頼るのではなく、vimで必要なものはここで追加するようにした方が安全そう。
+"let $PATH = $PATH . ';' . $HOME
+let $PATH = $HOME
+let $PATH = $PATH . ';' . $VIM
+let $PATH = $PATH . ';' . $HOME . '/vimfiles'
+let $PATH = $PATH . ';' . $HOME . '/vimfiles/bin/'
+let $PATH = $PATH . ';' . $HOME . '/vimfiles/bin/grep'
+let $PATH = $PATH . ';' . 'C:/Programs/php'
+let $PATH = $PATH . ';' . 'C:/Programs/make-3.81/bin'
+let $PATH = $PATH . ';' . 'C:/Programs/tools/Lynx286rel4TH'
+let $PATH = $PATH . ';' . 'C:/Windows/System32'
+
+"RAMディスクを設定する。指定したRAMディスクが無い場合はホームディレクトリとする
+let $RAM_DISK_PATH = 'R:'
+if !isdirectory($RAM_DISK_PATH)
+  let $RAM_DISK_PATH = $HOME
+endif
+
+
+"$HOMEをWindowsで設定するとほかのアプリにも影響がでるといけないのでここで設定する
+let $PATH = $PATH . ';C:/Program files/Git/bin'
+
+"ctagsの位置を設定する
+let $CTAGS_PATH = $HOME . '/ctags.exe'
+
+"grepに外部のgrep設定する
+let $GREP_PATH = $HOME . '/vimfiles/bin/grep/grep'
+" set grepprg=$HOME/grep/bin/grep
+set grepprg=$GREP_PATH
+

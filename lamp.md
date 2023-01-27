@@ -326,3 +326,10 @@ __IP__ www.training.develop.local
 ```
 - 保存
 - ブラウザ確認 http://www.training.develop.local
+
+### IPアドレスが表示されない場合
+インストール時にネットワークアダプタを自動接続にしているか確認
+nmcli con show enp0s3 | grep connection
+で、autoconnectがno(いいえ) だった場合
+nmcli con mod enp0s3 connection.autoconnect “yes”
+で有効にし、rebootする

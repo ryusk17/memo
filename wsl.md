@@ -1,5 +1,8 @@
 # WSL
 
+## WSL2のインストール
+https://chigusa-web.com/blog/wsl2-win11/
+
 ## 起動
 Windowsの検索欄で「ubuntu」を検索すること
 
@@ -14,5 +17,5 @@ chsh -s /usr/bin/zsh ユーザー名
 エクスプローラーのアドレスバーに「\\wsl$」を入力する
 
 ## WSLバージョンの確認
-コマンドプロンプト、PowerShellで
+コマンドプロンプト or PowerShellで
 wsl -l -v

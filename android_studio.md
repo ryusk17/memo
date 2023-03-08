@@ -29,14 +29,15 @@ apk したものを実機で確認すること
 3. APK を選択し NEXT
 4. Key store path をCREATE NEW
 5. Key store path ex.) C:\android_key_store\myapplication_key_store.jks ※絶対になくさないこと
-6. Password ex.) Yx3TgaCCvbvK ※忘れないこと
+6. Password ex.) Yx3TgaCCvbvK ※忘れないこと、2ヶ所同じで良い
 7. Alias ex.) myapplication_alias ※忘れないこと
-8. その他項目を適宜入力し OK
+8. その他項目を適宜入力し OK ※Certificateどれか1ヶ所入力すれば良い
 9. Remember passwords チェックし NEXT
-10. release を選択し FINISH
-11. 生成後、Android Studio右下にAPK関連の「i」ボックスが出現
-12. ボックスを全表示し locate クリック
-13. apkファイル名は自由に変更可能 ex.)C:\Users\_USER_\AndroidStudioProjects\_myapplication_\app\release\myapplication_v1_0.apk
+10. Destinateion Folderが正しいか確認
+11. release を選択し FINISH
+12. 生成後、Android Studio右下にAPK関連の「i」ボックスが出現
+13. ボックスを全表示し locate クリック
+14. apkファイル名は自由に変更可能 ex.)C:\Users\_USER_\AndroidStudioProjects\_myapplication_\app\release\myapplication_v1_0.apk
 
 ### インストール
 - Windows
@@ -88,3 +89,8 @@ android > app > res > mipmap を open in エクスプローラーで開く
 ## デバッグ
 https://developer.android.com/studio/install?hl=ja
 https://developer.android.com/studio/debug/dev-options?hl=ja
+
+## パッケージ名変更
+https://codeforfun.jp/android-studio-how-to-change-package-name-1/
+バックアップを取っておくこと
+GooglePlayに公開済みの場合、APK生成時のキーを分ける(新規作成)こと

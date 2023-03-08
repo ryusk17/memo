@@ -5,6 +5,8 @@
 django-admin startproject _プロジェクト名_ .
 - アプリケーション作成
 python manage.py startapp _アプリケーション名_
+- 管理ユーザー作成
+python manage.py createsuperuser
 
 ## settings.py
 - DBにMySQLを使用
@@ -45,7 +47,7 @@ DATABASES = {
 ```
 ## Docker開発環境
 初回は
-python manage.py runserver
+python manage.py runserver 0.0.0.0:8000
 の前に
 python manage.py migrate
 すること

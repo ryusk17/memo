@@ -41,3 +41,7 @@ public function boot()
 {
     Paginator::useBootstrap();
 }
+
+## マイグレーション
+- マイグレーションファイル作成
+php artisan make:migration ファイル名 --table=テーブル名

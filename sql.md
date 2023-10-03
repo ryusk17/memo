@@ -69,3 +69,48 @@ ALTER TABLE [テーブル名] MODIFY [カラム名] [型] NOT NULL;
 
 - カラム削除
 ALTER TABLE [テーブル名] DROP COLUMN [フィールド名];
+
+## スロークエリ確認
+
+- 設定確認
+mysql> show variables like 'slow_query%';
++---------------------+-----------------------------------+
+| Variable_name       | Value                             |
++---------------------+-----------------------------------+
+| slow_query_log      | OFF                               |
+| slow_query_log_file | /var/lib/mysql/localhost-slow.log |
++---------------------+-----------------------------------+
+2 rows in set (0.00 sec)
+
+mysql> show variables like 'long%';
++-----------------+-----------+
+| Variable_name   | Value     |
++-----------------+-----------+
+| long_query_time | 10.000000 |
++-----------------+-----------+
+1 row in set (0.00 sec)
+
+mysql> SHOW GLOBAL VARIABLES LIKE 'log_queries_not_using_indexes';
++-------------------------------+-------+
+| Variable_name                 | Value |
++-------------------------------+-------+
+| log_queries_not_using_indexes | OFF   |
++-------------------------------+-------+
+1 row in set (0.00 sec)
+
+
+- スロークエリ判定を3秒にする
+mysql> set global long_query_time=3;
+Query OK, 0 rows affected (0.00 sec)
+
+- スロークエリログを出力する
+mysql> set global slow_query_log=1;
+Query OK, 0 rows affected (0.00 sec)
+
+- インデックスの効かないクエリをスロークエリログに出力する
+mysql> set global log_queries_not_using_indexes=1;
+Query OK, 0 rows affected (0.00 sec)
+
+
+## インデックス確認
+mysql> SELECT table_schema, table_name, index_name, column_name, seq_in_index FROM information_schema.statistics WHERE table_schema = "DB名";

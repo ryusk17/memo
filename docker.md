@@ -20,3 +20,19 @@ https://zenn.dev/gki/scraps/4231ff2ed5601c
 - 普段のコンテナ停止はdocker-compose downを使う
 - /docker-entrypoint-initdb.dのスクリプトを再実行したくなったら、docker-compose down --volumeを使う。名前付きボリュームが消えてDBが完全初期化されるので注意
 - 再度 upすれば/docker-entrypoint-initdb.dのスクリプトが実行される
+
+## DockerDesktopWindows の再インストール
+- PowerShellでubuntu(wsl)のSTATEがStoppedか確認
+PS C:\Users\narieda> wsl -l -v
+  NAME      STATE           VERSION
+* Ubuntu    Stopped         2
+
+- Stoppedにする
+PS C:\Users\narieda> wsl -t ubuntu
+この操作を正しく終了しました。
+
+- Windowsの「アプリと機能」からDockerDesktopをアンインストール
+- 再度インストールする
+
+## Docker failed to initialize の対処方法
+C:\Users\{ユーザ名}\AppData\Roaming\Docker のフォルダを削除する

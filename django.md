@@ -55,3 +55,21 @@ python manage.py migrate
 ## runserver 時に Error: That port is already in use.
 https://qiita.com/taiyyytai/items/20239fa1baada477a52f
 ps aux して kill する
+
+## VSCodeでデバッグを行う方法
+1. docker-compose up -d でdockerを立ち上げ
+2. VSCodeの拡張機能「Dev Containers」をインストール
+3. Ctrl + Shift + p で「open folder in container」を選択し、リポジトリを開く
+4. 「Dev container: django cocntainer」にpythonの拡張機能をインストールする
+5. ブレークポイントを設定
+6. 「実行とデバッグ」で「Django container」が選択されていることを確認し、デバッグを実行
+ブレークポイントが実行できていればok
+
+## DB設計変更時
+1. DROP DATABASE する
+2. CREATE DATABASE する
+3. python manage.py makemigrations app
+4. python manage.py migrate
+
+## 静的ファイル
+python manage.py collectstatic

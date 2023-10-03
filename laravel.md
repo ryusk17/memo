@@ -45,3 +45,9 @@ public function boot()
 ## マイグレーション
 - マイグレーションファイル作成
 php artisan make:migration ファイル名 --table=テーブル名
+
+- create例
+php artisan make:migration create_studios_table --create=studios
+
+## facadeとは
+https://reffect.co.jp/laravel/laravel-facade-understanding/
